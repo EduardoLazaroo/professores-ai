@@ -1,71 +1,136 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { GenerateType, GenerateResponse } from "@/lib/types";
+import { FormSection } from "@/app/components/FormSection";
+import { ResultSection } from "@/app/components/ResultSection";
+import { ActionButton } from "@/app/components/ActionButton";
 
 export default function Home() {
+  const [type, setType] = useState<GenerateType>("planejamento");
   const [content, setContent] = useState("");
-  const [type, setType] = useState("planejamento");
   const [result, setResult] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async () => {
-    if (!content) return;
+  /**
+   * Envia requisição para API de geração
+   */
+  const handleGenerate = useCallback(async () => {
+    if (!content.trim()) {
+      setError("Por favor, insira um conteúdo válido.");
+      return;
+    }
 
     setLoading(true);
     setResult("");
+    setError("");
 
-    const response = await fetch("/api/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type, content }),
-    });
+    try {
+      const response = await fetch("/api/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          type,
+          content: content.trim(),
+        }),
+      });
 
-    const data = await response.json();
-    setResult(data.result);
-    setLoading(false);
-  };
+      const data: GenerateResponse = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Erro ao processar solicitação");
+        return;
+      }
+
+      if (data.success && data.result) {
+        setResult(data.result);
+        setError("");
+      } else {
+        setError(data.error || "Erro desconhecido");
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Erro de conexão. Tente novamente."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [type, content]);
+
+  /**
+   * Copia resultado para área de transferência
+   */
+  const handleCopy = useCallback(async () => {
+    if (!result) return;
+
+    try {
+      await navigator.clipboard.writeText(result);
+      alert("Resultado copiado para área de transferência!");
+    } catch {
+      alert("Erro ao copiar. Tente novamente.");
+    }
+  }, [result]);
+
+  const isFormDisabled = loading;
+  const isSubmitDisabled = !content.trim() || loading;
 
   return (
-    <main className="min-h-screen bg-gray-100 p-6 flex justify-center">
-      <div className="w-full max-w-3xl bg-white p-6 rounded-2xl shadow-lg">
-        <h1 className="text-2xl font-bold mb-4 text-center">
-          Assistente para Professores
-        </h1>
-
-        <div className="mb-4">
-          <select
-            className="w-full border p-2 rounded-lg"
-            value={type}
-            onChange={(e) => setType(e.target.value)}
-          >
-            <option value="planejamento">Planejamento Semanal</option>
-            <option value="ocorrencia">Ocorrência Formal</option>
-          </select>
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 sm:p-6 lg:p-8 flex items-center justify-center">
+      <div className="w-full max-w-4xl">
+        {/* Header */}
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
+            Assistente AI para Professores
+          </h1>
+          <p className="text-gray-600 text-sm sm:text-base">
+            Otimize seu trabalho pedagógico com inteligência artificial
+          </p>
         </div>
 
-        <textarea
-          className="w-full border p-3 rounded-lg mb-4 min-h-[150px]"
-          placeholder="Cole aqui o conteúdo..."
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-        />
+        {/* Card Principal */}
+        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 space-y-6">
+          {/* Seção de Formulário */}
+          <FormSection
+            type={type}
+            content={content}
+            onTypeChange={setType}
+            onContentChange={setContent}
+            disabled={isFormDisabled}
+          />
 
-        <button
-          onClick={handleSubmit}
-          className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
-        >
-          {loading ? "Gerando..." : "Gerar"}
-        </button>
+          {/* Separador Visual */}
+          <div className="border-t border-gray-200"></div>
 
-        {result && (
-          <div className="mt-6 p-4 border rounded-lg bg-gray-50 whitespace-pre-wrap">
-            {result}
-          </div>
-        )}
+          {/* Botão de Ação */}
+          <ActionButton
+            loading={loading}
+            disabled={isSubmitDisabled}
+            onClick={handleGenerate}
+          />
 
-        <footer className="mt-6 text-xs text-gray-500 text-center">
-          🔒 Nenhum texto é armazenado. Comunicação segura via HTTPS.
-        </footer>
+          {/* Separador Visual */}
+          <div className="border-t border-gray-200"></div>
+
+          {/* Seção de Resultado */}
+          <ResultSection
+            result={result}
+            error={error}
+            loading={loading}
+            onCopy={handleCopy}
+          />
+        </div>
+
+        {/* Footer */}
+        <div className="mt-8 text-center text-xs sm:text-sm text-gray-600">
+          <p>
+            Dados não são armazenados. Sua privacidade é importante para nós.
+          </p>
+        </div>
       </div>
     </main>
   );
