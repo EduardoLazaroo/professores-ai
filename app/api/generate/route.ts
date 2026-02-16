@@ -2,13 +2,13 @@
  * API Route para geração de conteúdo
  * POST /api/generate
  *
- * Recebe: { type: "planejamento" | "ocorrencia", content: string }
+ * Recebe: { type: "planejamento" | "ocorrencia" | "atividade", content?: string, context?: {...} }
  * Retorna: { success: boolean, result?: string, error?: string }
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { generateContent, validateAPIKey } from "@/lib/openai";
-import { generatePrompt, getSystemPrompt, validateContent } from "@/lib/prompts";
+import { generatePrompt, getSystemPrompt, validateContent, validateOcorrenciaContext, validateAtividadeContext } from "@/lib/prompts";
 import { validateRequest } from "@/lib/validation";
 import { GenerateResponse } from "@/lib/types";
 
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<GenerateR
       );
     }
 
-    // 4. Validar estrutura da requisição
+    // 4. Validar estrutura básica da requisição
     const validation = validateRequest(body);
     if (!validation.valid) {
       return NextResponse.json(
@@ -66,21 +66,68 @@ export async function POST(request: NextRequest): Promise<NextResponse<GenerateR
       );
     }
 
-    const { type, content } = validation.data!;
+    const { type, content, context } = validation.data!;
 
-    // 5. Validar conteúdo
-    const contentError = validateContent(content);
-    if (contentError) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: contentError,
-        },
-        { status: 400 }
-      );
+    // 5. Validação específica por tipo
+    if (type === "ocorrencia") {
+      if (!context || !("tipo" in context)) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Contexto de ocorrência é obrigatório",
+          },
+          { status: 400 }
+        );
+      }
+      const contextError = validateOcorrenciaContext(context);
+      if (contextError) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: contextError,
+          },
+          { status: 400 }
+        );
+      }
     }
 
-    // 6. Verificar disponibilidade da API OpenAI
+    if (type === "atividade") {
+      if (!context || !("turma" in context)) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Contexto de atividade é obrigatório",
+          },
+          { status: 400 }
+        );
+      }
+      const contextError = validateAtividadeContext(context);
+      if (contextError) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: contextError,
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    // 6. Validar conteúdo (obrigatório para planejamento e ocorrência)
+    if (type !== "atividade") {
+      const contentError = validateContent(content);
+      if (contentError) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: contentError,
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    // 7. Verificar disponibilidade da API OpenAI
     const apiAvailable = await validateAPIKey();
     if (!apiAvailable) {
       console.error("OpenAI API key validation failed");
@@ -93,13 +140,13 @@ export async function POST(request: NextRequest): Promise<NextResponse<GenerateR
       );
     }
 
-    // 7. Gerar conteúdo
+    // 8. Gerar conteúdo
     const systemPrompt = getSystemPrompt();
-    const userPrompt = generatePrompt(type, content);
+    const userPrompt = generatePrompt(type, content || "", context);
 
     const response = await generateContent(systemPrompt, userPrompt);
 
-    // 8. Retornar sucesso
+    // 9. Retornar sucesso
     return NextResponse.json({
       success: true,
       result: response.content,

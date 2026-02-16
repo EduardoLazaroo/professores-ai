@@ -2,9 +2,9 @@
  * Utilitários de validação para a aplicação
  */
 
-import { GenerateType, GenerateRequest } from "./types";
+import { GenerateType, GenerateRequest, OcorrenciaContext, AtividadeContext } from "./types";
 
-const VALID_TYPES: GenerateType[] = ["planejamento", "ocorrencia"];
+const VALID_TYPES: GenerateType[] = ["planejamento", "ocorrencia", "atividade"];
 
 /**
  * Valida a requisição completa
@@ -31,32 +31,47 @@ export function validateRequest(
     };
   }
 
-  // Validar conteúdo
-  if (!request.content || typeof request.content !== "string") {
-    return { valid: false, error: "Campo 'content' é obrigatório" };
-  }
+  const type = request.type as GenerateType;
 
-  const content = request.content.trim();
+  // Validar conteúdo (obrigatório para planejamento e ocorrência)
+  if (type !== "atividade") {
+    if (!request.content || typeof request.content !== "string") {
+      return { valid: false, error: "Campo 'content' é obrigatório" };
+    }
 
-  if (content.length < 10) {
+    const content = request.content.trim();
+
+    if (content.length < 10) {
+      return {
+        valid: false,
+        error: "Conteúdo deve ter no mínimo 10 caracteres",
+      };
+    }
+
+    if (content.length > 5000) {
+      return {
+        valid: false,
+        error: "Conteúdo não pode exceder 5000 caracteres",
+      };
+    }
+
     return {
-      valid: false,
-      error: "Conteúdo deve ter no mínimo 10 caracteres",
+      valid: true,
+      data: {
+        type,
+        content,
+        context: request.context as OcorrenciaContext | AtividadeContext | undefined,
+      },
     };
   }
 
-  if (content.length > 5000) {
-    return {
-      valid: false,
-      error: "Conteúdo não pode exceder 5000 caracteres",
-    };
-  }
-
+  // Para atividades, conteúdo é opcional
   return {
     valid: true,
     data: {
-      type: request.type as GenerateType,
-      content,
+      type,
+      content: "",
+      context: request.context as OcorrenciaContext | AtividadeContext | undefined,
     },
   };
 }

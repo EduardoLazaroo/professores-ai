@@ -21,8 +21,8 @@ export function ResultSection({
   const hasContent = result.trim().length > 0;
 
   return (
-    <section className="space-y-4">
-      <div className="mb-2 flex items-center justify-between">
+    <section className="space-y-3">
+      <div className="flex items-center justify-between">
         <label className="block text-sm font-semibold text-gray-700">
           Resultado
         </label>
@@ -60,7 +60,7 @@ export function ResultSection({
         )}
 
         {hasContent && !loading && (
-          <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap text-justify">
+          <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap text-justify leading-relaxed">
             {result}
           </div>
         )}
@@ -68,7 +68,7 @@ export function ResultSection({
         {!loading && !error && !hasContent && (
           <div className="flex items-center justify-center h-full text-gray-400">
             <p className="text-sm">
-              Preencha o formulário e clique em &quot;Gerar&quot; para ver o resultado
+              Preencha o formulário acima e clique em &quot;Gerar&quot; para ver o resultado
             </p>
           </div>
         )}

@@ -1,136 +1,290 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { GenerateType, GenerateResponse } from "@/lib/types";
-import { FormSection } from "@/app/components/FormSection";
-import { ResultSection } from "@/app/components/ResultSection";
-import { ActionButton } from "@/app/components/ActionButton";
+import { TabsNavigation } from "@/app/components/TabsNavigation";
+import { HomeScreen } from "@/app/components/HomeScreen";
+import { PlanejamentoScreen } from "@/app/components/screens/PlanejamentoScreen";
+import { OcorrenciaScreen } from "@/app/components/screens/OcorrenciaScreen";
+import { AtividadeScreen } from "@/app/components/screens/AtividadeScreen";
+import { GenerateResponse, OcorrenciaContext, AtividadeContext } from "@/lib/types";
+
+type TabId = "home" | "planejamento" | "ocorrencia" | "atividade";
+
+interface TabState {
+  content: string;
+  result: string;
+  error: string;
+  loading: boolean;
+}
 
 export default function Home() {
-  const [type, setType] = useState<GenerateType>("planejamento");
-  const [content, setContent] = useState("");
-  const [result, setResult] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabId>("home");
+
+  // Estados isolados por aba
+  const [planejamentoState, setPlanejamentoState] = useState<TabState>({
+    content: "",
+    result: "",
+    error: "",
+    loading: false,
+  });
+
+  const [ocorrenciaState, setOcorrenciaState] = useState<TabState>({
+    content: "",
+    result: "",
+    error: "",
+    loading: false,
+  });
+
+  const [atividadeState, setAtividadeState] = useState<TabState>({
+    content: "",
+    result: "",
+    error: "",
+    loading: false,
+  });
 
   /**
-   * Envia requisição para API de geração
+   * Gera conteúdo para Planejamento
    */
-  const handleGenerate = useCallback(async () => {
-    if (!content.trim()) {
-      setError("Por favor, insira um conteúdo válido.");
-      return;
-    }
+  const handlePlanejamentoGenerate = useCallback(
+    async (content: string) => {
+      setPlanejamentoState((prev) => ({
+        ...prev,
+        loading: true,
+        error: "",
+      }));
 
-    setLoading(true);
-    setResult("");
-    setError("");
+      try {
+        const response = await fetch("/api/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "planejamento",
+            content: content.trim(),
+          }),
+        });
 
-    try {
-      const response = await fetch("/api/generate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          type,
-          content: content.trim(),
-        }),
-      });
+        const data: GenerateResponse = await response.json();
 
-      const data: GenerateResponse = await response.json();
+        if (!response.ok) {
+          setPlanejamentoState((prev) => ({
+            ...prev,
+            error: data.error || "Erro ao processar solicitação",
+            loading: false,
+          }));
+          return;
+        }
 
-      if (!response.ok) {
-        setError(data.error || "Erro ao processar solicitação");
-        return;
+        if (data.success && data.result) {
+          setPlanejamentoState((prev) => ({
+            ...prev,
+            result: data.result || "",
+            error: "",
+            loading: false,
+          }));
+        } else {
+          setPlanejamentoState((prev) => ({
+            ...prev,
+            error: data.error || "Erro desconhecido",
+            loading: false,
+          }));
+        }
+      } catch (err) {
+        setPlanejamentoState((prev) => ({
+          ...prev,
+          error:
+            err instanceof Error
+              ? err.message
+              : "Erro de conexão. Tente novamente.",
+          loading: false,
+        }));
       }
-
-      if (data.success && data.result) {
-        setResult(data.result);
-        setError("");
-      } else {
-        setError(data.error || "Erro desconhecido");
-      }
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Erro de conexão. Tente novamente."
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [type, content]);
+    },
+    []
+  );
 
   /**
-   * Copia resultado para área de transferência
+   * Gera conteúdo para Ocorrência
    */
-  const handleCopy = useCallback(async () => {
-    if (!result) return;
+  const handleOcorrenciaGenerate = useCallback(
+    async (content: string, context: OcorrenciaContext) => {
+      setOcorrenciaState((prev) => ({
+        ...prev,
+        loading: true,
+        error: "",
+      }));
 
-    try {
-      await navigator.clipboard.writeText(result);
-      alert("Resultado copiado para área de transferência!");
-    } catch {
-      alert("Erro ao copiar. Tente novamente.");
-    }
-  }, [result]);
+      try {
+        const response = await fetch("/api/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "ocorrencia",
+            content: content.trim(),
+            context,
+          }),
+        });
 
-  const isFormDisabled = loading;
-  const isSubmitDisabled = !content.trim() || loading;
+        const data: GenerateResponse = await response.json();
+
+        if (!response.ok) {
+          setOcorrenciaState((prev) => ({
+            ...prev,
+            error: data.error || "Erro ao processar solicitação",
+            loading: false,
+          }));
+          return;
+        }
+
+        if (data.success && data.result) {
+          setOcorrenciaState((prev) => ({
+            ...prev,
+            result: data.result || "",
+            error: "",
+            loading: false,
+          }));
+        } else {
+          setOcorrenciaState((prev) => ({
+            ...prev,
+            error: data.error || "Erro desconhecido",
+            loading: false,
+          }));
+        }
+      } catch (err) {
+        setOcorrenciaState((prev) => ({
+          ...prev,
+          error:
+            err instanceof Error
+              ? err.message
+              : "Erro de conexão. Tente novamente.",
+          loading: false,
+        }));
+      }
+    },
+    []
+  );
+
+  /**
+   * Gera conteúdo para Atividade
+   */
+  const handleAtividadeGenerate = useCallback(
+    async (context: AtividadeContext) => {
+      setAtividadeState((prev) => ({
+        ...prev,
+        loading: true,
+        error: "",
+      }));
+
+      try {
+        const response = await fetch("/api/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "atividade",
+            content: "",
+            context,
+          }),
+        });
+
+        const data: GenerateResponse = await response.json();
+
+        if (!response.ok) {
+          setAtividadeState((prev) => ({
+            ...prev,
+            error: data.error || "Erro ao processar solicitação",
+            loading: false,
+          }));
+          return;
+        }
+
+        if (data.success && data.result) {
+          setAtividadeState((prev) => ({
+            ...prev,
+            result: data.result || "",
+            error: "",
+            loading: false,
+          }));
+        } else {
+          setAtividadeState((prev) => ({
+            ...prev,
+            error: data.error || "Erro desconhecido",
+            loading: false,
+          }));
+        }
+      } catch (err) {
+        setAtividadeState((prev) => ({
+          ...prev,
+          error:
+            err instanceof Error
+              ? err.message
+              : "Erro de conexão. Tente novamente.",
+          loading: false,
+        }));
+      }
+    },
+    []
+  );
+
+  /**
+   * Handlers para Home
+   */
+  const handleWhatsAppClick = () => {
+    window.open("https://wa.me/18998065592", "_blank");
+  };
+
+  const handlePixCopy = () => {
+    navigator.clipboard.writeText("18998065592").then(() => {
+      alert("Chave PIX copiada para área de transferência!");
+    });
+  };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 sm:p-6 lg:p-8 flex items-center justify-center">
-      <div className="w-full max-w-4xl">
-        {/* Header */}
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
-            Assistente AI para Professores
-          </h1>
-          <p className="text-gray-600 text-sm sm:text-base">
-            Otimize seu trabalho pedagógico com inteligência artificial
-          </p>
-        </div>
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      {/* Navegação em abas */}
+      <TabsNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
-        {/* Card Principal */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 space-y-6">
-          {/* Seção de Formulário */}
-          <FormSection
-            type={type}
-            content={content}
-            onTypeChange={setType}
-            onContentChange={setContent}
-            disabled={isFormDisabled}
+      {/* Conteúdo baseado na aba ativa */}
+      <div className="py-6">
+        {activeTab === "home" && (
+          <HomeScreen
+            onWhatsAppClick={handleWhatsAppClick}
+            onPixCopy={handlePixCopy}
           />
+        )}
 
-          {/* Separador Visual */}
-          <div className="border-t border-gray-200"></div>
-
-          {/* Botão de Ação */}
-          <ActionButton
-            loading={loading}
-            disabled={isSubmitDisabled}
-            onClick={handleGenerate}
+        {activeTab === "planejamento" && (
+          <PlanejamentoScreen
+            content={planejamentoState.content}
+            result={planejamentoState.result}
+            error={planejamentoState.error}
+            loading={planejamentoState.loading}
+            onContentChange={(content) =>
+              setPlanejamentoState((prev) => ({ ...prev, content }))
+            }
+            onGenerate={handlePlanejamentoGenerate}
           />
+        )}
 
-          {/* Separador Visual */}
-          <div className="border-t border-gray-200"></div>
-
-          {/* Seção de Resultado */}
-          <ResultSection
-            result={result}
-            error={error}
-            loading={loading}
-            onCopy={handleCopy}
+        {activeTab === "ocorrencia" && (
+          <OcorrenciaScreen
+            content={ocorrenciaState.content}
+            result={ocorrenciaState.result}
+            error={ocorrenciaState.error}
+            loading={ocorrenciaState.loading}
+            onContentChange={(content) =>
+              setOcorrenciaState((prev) => ({ ...prev, content }))
+            }
+            onGenerate={handleOcorrenciaGenerate}
           />
-        </div>
+        )}
 
-        {/* Footer */}
-        <div className="mt-8 text-center text-xs sm:text-sm text-gray-600">
-          <p>
-            Dados não são armazenados. Sua privacidade é importante para nós.
-          </p>
-        </div>
+        {activeTab === "atividade" && (
+          <AtividadeScreen
+            result={atividadeState.result}
+            error={atividadeState.error}
+            loading={atividadeState.loading}
+            onGenerate={handleAtividadeGenerate}
+          />
+        )}
       </div>
     </main>
   );
