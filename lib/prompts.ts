@@ -12,20 +12,35 @@ const SYSTEM_PROMPT = `Você é um assistente especializado em educação, ajuda
  */
 const PLANEJAMENTO_SEMANAL_PROMPT = `Com base na seguinte proposta de planejamento semanal, estruture uma resposta com as seguintes seções obrigatoriamente, cada uma iniciada pelo título entre parênteses:
 
-(Objetivos)
-Principais objetivos de aprendizagem para a semana.
+(APRENDIZAGENS ESSENCIAIS)
+Resumo das aprendizagens fundamentais que os alunos devem alcançar nesta semana.
 
-(Conteúdos)
-Tópicos e conteúdos a serem abordados.
+(HABILIDADE PRIORIZADA / HABILIDADES RELACIONADAS)
+Habilidade principal a ser priorizada e outras habilidades relacionadas.
 
-(Metodologia)
-Estratégias e métodos de ensino a serem utilizados.
+(CONTEÚDOS / DESCRITORES)
+Tópicos e descritores curriculares que serão trabalhados.
 
-(Recursos)
-Materiais, ferramentas e recursos necessários.
+(MATERIAL DIGITAL)
+Recursos digitais e plataformas que podem ser utilizados.
 
-(Avaliação)
-Formas de avaliação e acompanhamento da aprendizagem.
+(OBJETIVOS ESPECÍFICOS)
+Objetivos de aprendizagem específicos e mensuráveis para a semana.
+
+(ESTRATÉGIAS / PROCEDIMENTOS PARA O DESENVOLVIMENTO DOS OBJETIVOS PROPOSTOS)
+Métodos, sequências de atividades e procedimentos didáticos para alcançar os objetivos.
+
+(RECURSOS / FERRAMENTAS)
+Lista de materiais, equipamentos e ferramentas (físicas e digitais) necessárias.
+
+(AVALIAÇÃO)
+Instrumentos e critérios de avaliação, evidências esperadas e como registrar os resultados.
+
+(OBSERVAÇÕES)
+Observações pedagógicas, adaptações e orientações complementares.
+
+(REFERÊNCIAS BIBLIOGRÁFICAS)
+Fontes e referências usadas ou recomendadas.
 
 Responda de forma objetiva, sem markdown, sem ##, sem símbolos especiais. Use apenas parágrafos claros e bem estruturados.
 
