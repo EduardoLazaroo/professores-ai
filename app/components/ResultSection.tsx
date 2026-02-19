@@ -5,6 +5,8 @@
 
 "use client";
 
+import { useState, useCallback } from "react";
+
 interface ResultSectionProps {
   result: string;
   error: string;
@@ -18,25 +20,47 @@ export function ResultSection({
   loading,
   onCopy,
 }: ResultSectionProps) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(() => {
+    onCopy();
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [onCopy]);
+
   const hasContent = result.trim().length > 0;
 
   return (
     <section className="space-y-3">
       <div className="flex items-center justify-between">
-        <label className="block text-sm font-semibold text-gray-700">
+        <label className="block text-sm font-semibold text-gray-800">
           Resultado
         </label>
         {hasContent && (
           <button
-            onClick={onCopy}
-            className="text-xs px-3 py-1 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors font-medium"
+            onClick={handleCopy}
+            className={`px-4 py-2 rounded-lg font-medium text-white transition-all duration-300 flex items-center gap-2 ${
+              copied
+                ? "bg-emerald-600 hover:bg-emerald-700"
+                : "bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 shadow-md hover:shadow-lg"
+            }`}
           >
-            Copiar
+            {copied ? (
+              <>
+                <span>✓</span>
+                <span>Copiado!</span>
+              </>
+            ) : (
+              <>
+                <span>📋</span>
+                <span>Copiar</span>
+              </>
+            )}
           </button>
         )}
       </div>
 
-      <div className="relative min-h-[200px] rounded-lg border border-gray-300 bg-gray-50 p-4">
+      <div className="relative min-h-[200px] rounded-lg border border-gray-300 bg-white p-4">
         {loading && (
           <div className="flex items-center justify-center h-full space-x-2">
             <div className="h-2 w-2 rounded-full bg-blue-500 animate-bounce"></div>

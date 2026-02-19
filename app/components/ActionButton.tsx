@@ -20,19 +20,22 @@ export function ActionButton({
     <button
       onClick={onClick}
       disabled={disabled || loading}
-      className={`w-full rounded-lg px-6 py-3 font-semibold text-white transition-all duration-200 ${
+      className={`w-full rounded-lg px-6 py-4 font-bold text-lg transition-all duration-200 flex items-center justify-center gap-2 ${
         disabled || loading
-          ? "bg-gray-400 cursor-not-allowed"
-          : "bg-blue-600 hover:bg-blue-700 active:bg-blue-800 shadow-md hover:shadow-lg"
+          ? "bg-gray-400 text-white cursor-not-allowed opacity-60"
+          : "bg-emerald-600 text-white hover:bg-emerald-700 active:bg-emerald-800 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
       }`}
     >
       {loading ? (
-        <div className="flex items-center justify-center space-x-2">
-          <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+        <>
+          <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
           <span>Gerando...</span>
-        </div>
+        </>
       ) : (
-        "Gerar"
+        <>
+          <span>✨</span>
+          <span>Gerar</span>
+        </>
       )}
     </button>
   );

@@ -16,17 +16,17 @@ interface TabsNavigationProps {
 
 export function TabsNavigation({ activeTab, onTabChange }: TabsNavigationProps) {
   return (
-    <nav className="bg-white border-b border-gray-200 shadow-sm">
+    <nav className="bg-white border-b border-gray-300 shadow-md sticky top-0 z-50">
       <div className="max-w-4xl mx-auto px-4">
         <div className="flex space-x-1 overflow-x-auto">
           {TABS_CONFIG.map((tab) => (
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id as TabId)}
-              className={`px-4 py-3 min-w-max text-sm font-medium transition-colors whitespace-nowrap ${
+              className={`px-5 py-4 min-w-max text-sm font-semibold transition-all whitespace-nowrap ${
                 activeTab === tab.id
-                  ? "text-blue-600 border-b-2 border-blue-600"
-                  : "text-gray-600 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300"
+                  ? "text-emerald-700 border-b-3 border-emerald-600 bg-emerald-50"
+                  : "text-gray-600 hover:text-gray-900 border-b-3 border-transparent hover:bg-gray-50"
               }`}
             >
               <span className="mr-2">{tab.icon}</span>

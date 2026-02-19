@@ -35,18 +35,17 @@ export function PlanejamentoScreen({
     if (!result) return;
     try {
       await navigator.clipboard.writeText(result);
-      alert("Resultado copiado para área de transferência!");
     } catch {
-      alert("Erro ao copiar. Tente novamente.");
+      // Erro silencioso
     }
   }, [result]);
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
       {/* Instruções */}
-      <section className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-        <p className="text-sm text-gray-700">
-          <strong>Como usar:</strong> Descreva o escopo da semana incluindo conteúdos, temas, nível de ensino e qualquer contexto importante. A IA estruturará um planejamento completo com objetivos, conteúdos, metodologia, recursos e formas de avaliação.
+      <section className="bg-emerald-50 rounded-lg p-5 border border-emerald-300">
+        <p className="text-sm text-gray-800">
+          <strong>📅 Como usar:</strong> Descreva o escopo da semana incluindo conteúdos, temas, nível de ensino e qualquer contexto importante. A IA estruturará um planejamento completo com objetivos, conteúdos, metodologia, recursos e formas de avaliação.
         </p>
       </section>
 

@@ -63,7 +63,7 @@ Relato a reescrever:`;
 /**
  * CRIADOR DE ATIVIDADES
  */
-const ATIVIDADE_CRIADOR_PROMPT = `Você é um especialista em design pedagógico. Com base nas informações fornecidas, crie uma atividade completa e estruturada.
+const ATIVIDADE_CRIADOR_PROMPT = `Você é um especialista em design pedagógico. Com base nas informações fornecidas, crie TRÊS atividades completas e estruturadas, diferentes entre si, para oferecer opções ao professor.
 
 Informações:
 - Turma: {turma}
@@ -71,7 +71,9 @@ Informações:
 - Tópico: {topico}
 - Recursos disponíveis: {recursos}
 
-Estruture a resposta com as seguintes seções (cada uma iniciada pelo título entre parênteses):
+Gere EXATAMENTE 3 atividades diferentes. Para cada uma, estruture a resposta com as seguintes seções (cada uma iniciada pelo título entre parênteses):
+
+(ATIVIDADE 1)
 
 (Objetivo da Atividade)
 Qual é o objetivo específico que os alunos devem alcançar.
@@ -88,7 +90,45 @@ Informe o tempo necessário para realizar a atividade.
 (Forma de Avaliação)
 Como o professor avaliará se os alunos atingiram o objetivo.
 
-Responda de forma objetiva, sem markdown, sem símbolos especiais. Use apenas texto estruturado simples.`;
+---
+
+(ATIVIDADE 2)
+
+(Objetivo da Atividade)
+Qual é o objetivo específico que os alunos devem alcançar.
+
+(Descrição Passo a Passo)
+Descreva os passos de forma clara para que o professor possa executar em sala.
+
+(Recursos Utilizados)
+Liste especificamente os recursos que serão utilizados.
+
+(Tempo Estimado)
+Informe o tempo necessário para realizar a atividade.
+
+(Forma de Avaliação)
+Como o professor avaliará se os alunos atingiram o objetivo.
+
+---
+
+(ATIVIDADE 3)
+
+(Objetivo da Atividade)
+Qual é o objetivo específico que os alunos devem alcançar.
+
+(Descrição Passo a Passo)
+Descreva os passos de forma clara para que o professor possa executar em sala.
+
+(Recursos Utilizados)
+Liste especificamente os recursos que serão utilizados.
+
+(Tempo Estimado)
+Informe o tempo necessário para realizar a atividade.
+
+(Forma de Avaliação)
+Como o professor avaliará se os alunos atingiram o objetivo.
+
+Responda de forma objetiva, sem markdown, sem símbolos especiais. Use apenas texto estruturado simples. Var sépare as atividades com --- para melhor legibilidade.`;
 
 /**
  * Gera prompt completo baseado no tipo

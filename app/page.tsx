@@ -232,13 +232,11 @@ export default function Home() {
   };
 
   const handlePixCopy = () => {
-    navigator.clipboard.writeText("18998065592").then(() => {
-      alert("Chave PIX copiada para área de transferência!");
-    });
+    navigator.clipboard.writeText("18998065592");
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       {/* Navegação em abas */}
       <TabsNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 

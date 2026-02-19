@@ -5,12 +5,21 @@
 
 "use client";
 
+import { useState, useCallback } from "react";
+
 interface HomeScreenProps {
   onWhatsAppClick: () => void;
   onPixCopy: () => void;
 }
 
 export function HomeScreen({ onWhatsAppClick, onPixCopy }: HomeScreenProps) {
+  const [pixCopied, setPixCopied] = useState(false);
+
+  const handlePixCopyClick = useCallback(() => {
+    onPixCopy();
+    setPixCopied(true);
+    setTimeout(() => setPixCopied(false), 2000);
+  }, [onPixCopy]);
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
       {/* Header */}
@@ -87,10 +96,24 @@ export function HomeScreen({ onWhatsAppClick, onPixCopy }: HomeScreenProps) {
                   18998065592
                 </code>
                 <button
-                  onClick={onPixCopy}
-                  className="px-4 py-2 bg-purple-600 text-white rounded font-medium hover:bg-purple-700 transition-colors text-sm"
+                  onClick={handlePixCopyClick}
+                  className={`px-4 py-2 text-white rounded font-medium transition-all text-sm flex items-center gap-2 ${
+                    pixCopied
+                      ? "bg-purple-600 hover:bg-purple-700"
+                      : "bg-purple-600 hover:bg-purple-700 active:bg-purple-800 shadow-md hover:shadow-lg"
+                  }`}
                 >
-                  Copiar
+                  {pixCopied ? (
+                    <>
+                      <span>✓</span>
+                      <span>Copiado</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>📋</span>
+                      <span>Copiar</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
