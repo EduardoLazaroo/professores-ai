@@ -201,6 +201,9 @@ export function validateContent(content: string): string | null {
 export function validateOcorrenciaContext(
   context: OcorrenciaContext
 ): string | null {
+  if (!context.nomeProf || !context.nomeProf.trim()) {
+    return "Nome do professor é obrigatório.";
+  }
   if (!context.tipo) {
     return "Tipo de ocorrência é obrigatório (Coletiva/Individual).";
   }

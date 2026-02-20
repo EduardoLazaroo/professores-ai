@@ -12,6 +12,7 @@ interface ResultSectionProps {
   error: string;
   loading: boolean;
   onCopy: () => void;
+  onGeneratePDF?: () => void;
 }
 
 export function ResultSection({
@@ -19,6 +20,7 @@ export function ResultSection({
   error,
   loading,
   onCopy,
+  onGeneratePDF,
 }: ResultSectionProps) {
   const [copied, setCopied] = useState(false);
 
@@ -37,26 +39,37 @@ export function ResultSection({
           Resultado
         </label>
         {hasContent && (
-          <button
-            onClick={handleCopy}
-            className={`px-4 py-2 rounded-lg font-medium text-white transition-all duration-300 flex items-center gap-2 ${
-              copied
-                ? "bg-emerald-600 hover:bg-emerald-700"
-                : "bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 shadow-md hover:shadow-lg"
-            }`}
-          >
-            {copied ? (
-              <>
-                <span>✓</span>
-                <span>Copiado!</span>
-              </>
-            ) : (
-              <>
-                <span>📋</span>
-                <span>Copiar</span>
-              </>
+          <div className="flex gap-2">
+            {onGeneratePDF && (
+              <button
+                onClick={onGeneratePDF}
+                className="px-4 py-2 rounded-lg font-medium text-white transition-all duration-300 flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 shadow-md hover:shadow-lg"
+              >
+                <span>📄</span>
+                <span>Gerar PDF</span>
+              </button>
             )}
-          </button>
+            <button
+              onClick={handleCopy}
+              className={`px-4 py-2 rounded-lg font-medium text-white transition-all duration-300 flex items-center gap-2 ${
+                copied
+                  ? "bg-emerald-600 hover:bg-emerald-700"
+                  : "bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 shadow-md hover:shadow-lg"
+              }`}
+            >
+              {copied ? (
+                <>
+                  <span>✓</span>
+                  <span>Copiado!</span>
+                </>
+              ) : (
+                <>
+                  <span>📋</span>
+                  <span>Copiar</span>
+                </>
+              )}
+            </button>
+          </div>
         )}
       </div>
 

@@ -29,6 +29,7 @@ export interface OpenAIResponse {
  * Contexto específico para Ocorrência Formal
  */
 export interface OcorrenciaContext {
+  nomeProf: string;
   tipo: "coletiva" | "individual";
   data: string;
   turno?: "manhã" | "tarde" | "noite";

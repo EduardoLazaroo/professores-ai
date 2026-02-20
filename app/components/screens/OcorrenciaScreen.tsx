@@ -9,6 +9,7 @@ import { FormSection } from "../FormSection";
 import { ResultSection } from "../ResultSection";
 import { ActionButton } from "../ActionButton";
 import { OcorrenciaContext } from "@/lib/types";
+import { generateOcorrenciaPDF } from "@/lib/pdf-generator";
 import { useCallback, useState } from "react";
 
 interface OcorrenciaScreenProps {
@@ -30,6 +31,7 @@ export function OcorrenciaScreen({
 }: OcorrenciaScreenProps) {
   // Estado local para badges
   const [context, setContext] = useState<OcorrenciaContext>({
+    nomeProf: "",
     tipo: "individual",
     data: new Date().toISOString().split("T")[0],
     turno: "manhã",
@@ -50,6 +52,11 @@ export function OcorrenciaScreen({
     }
   }, [result]);
 
+  const handleGeneratePDF = useCallback(async () => {
+    if (!result) return;
+    await generateOcorrenciaPDF(context, result);
+  }, [result, context]);
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
       {/* Instruções */}
@@ -59,8 +66,28 @@ export function OcorrenciaScreen({
         </p>
       </section>
 
+      {/* Nome do Professor (obrigatório) */}
+      <div className="bg-white rounded-lg p-6 border border-gray-300 shadow-sm">
+        <div>
+          <label className="block text-sm font-bold text-gray-800 mb-2">
+            Nome do Professor <span className="text-red-600">*</span>
+          </label>
+          <input
+            type="text"
+            placeholder="Digite seu nome completo..."
+            value={context.nomeProf}
+            onChange={(e) => setContext({ ...context, nomeProf: e.target.value })}
+            disabled={loading}
+            className="w-full rounded-lg border-2 border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-500 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-200 disabled:bg-gray-100 font-medium"
+          />
+        </div>
+      </div>
+
       {/* Badges obrigatórios e opcionais */}
-      <div className="space-y-4">
+      <div className="space-y-4 bg-white rounded-lg p-6 border border-gray-300 shadow-sm">
+        <h3 className="text-lg font-bold text-gray-900 mb-4">
+          Informações da Ocorrência
+        </h3>
         {/* Tipo (obrigatório) */}
         <div>
           <label className="block text-sm font-bold text-gray-800 mb-2">
@@ -184,7 +211,7 @@ export function OcorrenciaScreen({
       {/* Botão de ação */}
       <ActionButton
         loading={loading}
-        disabled={!content.trim() || loading || !context.tipo || !context.data}
+        disabled={!content.trim() || loading || !context.tipo || !context.data || !context.nomeProf.trim()}
         onClick={handleGenerate}
       />
 
@@ -194,6 +221,7 @@ export function OcorrenciaScreen({
         error={error}
         loading={loading}
         onCopy={handleCopy}
+        onGeneratePDF={handleGeneratePDF}
       />
     </div>
   );
