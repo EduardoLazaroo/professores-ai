@@ -18,7 +18,12 @@ import {
   generateTecnicoOfflineFallback,
 } from "@/lib/prompts";
 import { validateRequest } from "@/lib/validation";
-import { GenerateResponse, TecnicoContext } from "@/lib/types";
+import {
+  GenerateResponse,
+  OcorrenciaContext,
+  AtividadeContext,
+  TecnicoContext,
+} from "@/lib/types";
 
 /**
  * Handler POST para requisições de geração
@@ -87,7 +92,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<GenerateR
           { status: 400 }
         );
       }
-      const contextError = validateOcorrenciaContext(context);
+      const contextError = validateOcorrenciaContext(context as OcorrenciaContext);
       if (contextError) {
         return NextResponse.json(
           {
@@ -100,7 +105,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<GenerateR
     }
 
     if (type === "atividade") {
-      if (!context || !("turma" in context)) {
+      if (!context || !("topico" in context)) {
         return NextResponse.json(
           {
             success: false,
@@ -109,7 +114,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<GenerateR
           { status: 400 }
         );
       }
-      const contextError = validateAtividadeContext(context);
+      const contextError = validateAtividadeContext(context as AtividadeContext);
       if (contextError) {
         return NextResponse.json(
           {

@@ -514,36 +514,4 @@ function escapeHtml(text: string): string {
 }
 
 
-/**
- * Formata data para o padrão brasileiro
- */
-function formatDate(dateString: string): string {
-  try {
-    const date = new Date(dateString + "T00:00:00");
-    return date.toLocaleDateString("pt-BR", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  } catch {
-    return dateString;
-  }
-}
 
-/**
- * Capitaliza a primeira letra
- */
-function capitalizeFirstLetter(str: string): string {
-  if (!str) return "";
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
-/**
- * Escapa HTML para evitar injeção
- */
-function escapeHtml(text: string): string {
-  const div = document.createElement("div");
-  div.textContent = text;
-  return div.innerHTML;
-}

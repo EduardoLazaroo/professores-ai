@@ -6,20 +6,25 @@
 import OpenAI from "openai";
 import { OpenAIResponse } from "./types";
 
-// Validar se a chave de API está configurada
-if (!process.env.OPENAI_API_KEY) {
-  throw new Error(
-    "OPENAI_API_KEY não está configurada nas variáveis de ambiente"
-  );
-}
+let openaiClient: OpenAI | null = null;
 
-// Inicializar cliente OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-  defaultHeaders: {
-    "User-Agent": "OpenAI/Node",
-  },
-});
+function getOpenAIClient(): OpenAI {
+  if (!openaiClient) {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      throw new Error(
+        "OPENAI_API_KEY não está configurada nas variáveis de ambiente"
+      );
+    }
+    openaiClient = new OpenAI({
+      apiKey,
+      defaultHeaders: {
+        "User-Agent": "OpenAI/Node",
+      },
+    });
+  }
+  return openaiClient;
+}
 
 // Configurações para o modelo
 const MODEL = "gpt-4o-mini"; // Use gpt-4o-mini para melhor custo/benefício
@@ -38,7 +43,8 @@ export async function generateContent(
   userPrompt: string
 ): Promise<OpenAIResponse> {
   try {
-    const message = await openai.chat.completions.create({
+    const client = getOpenAIClient();
+    const message = await client.chat.completions.create({
       model: MODEL,
       max_tokens: MAX_TOKENS,
       temperature: TEMPERATURE,
@@ -95,7 +101,11 @@ export async function generateContent(
  */
 export async function validateAPIKey(): Promise<boolean> {
   try {
-    await openai.models.retrieve("gpt-4o-mini");
+    if (!process.env.OPENAI_API_KEY) {
+      return false;
+    }
+    const client = getOpenAIClient();
+    await client.models.retrieve("gpt-4o-mini");
     return true;
   } catch {
     return false;
