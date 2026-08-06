@@ -34,6 +34,22 @@ export function HomeScreen({ onWhatsAppClick, onPixCopy }: HomeScreenProps) {
 
       {/* Seções de informação */}
       <div className="space-y-6">
+        {/* Eixo Técnico (EPT) Novo Highlight */}
+        <section className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 rounded-xl p-6 text-white shadow-md">
+          <div className="flex items-center space-x-3 mb-2">
+            <span className="text-2xl">💻</span>
+            <h2 className="text-xl font-bold text-blue-300">
+              Novo: Planejamento Eixo Técnico (EPT)
+            </h2>
+          </div>
+          <p className="text-slate-200 text-sm leading-relaxed mb-3">
+            Ferramenta especializada para os cursos de TI da <strong>EE Monsenhor Bicudo</strong> (2º e 3º ano técnico). Suporta cópia e cola direta de planilhas Excel/TSV, extração automática de competências práticas e exportação de PDF institucional oficial!
+          </p>
+          <span className="inline-block bg-blue-500/20 border border-blue-400/30 text-blue-300 text-xs font-semibold px-3 py-1 rounded-full">
+            Navegue até a aba "Eixo Técnico" no menu superior para experimentar
+          </span>
+        </section>
+
         {/* Sobre a ferramenta */}
         <section className="bg-blue-50 rounded-lg p-6 border border-blue-200">
           <h2 className="text-xl font-semibold text-blue-900 mb-3">

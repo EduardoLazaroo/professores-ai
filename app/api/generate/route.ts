@@ -8,9 +8,17 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { generateContent, validateAPIKey } from "@/lib/openai";
-import { generatePrompt, getSystemPrompt, validateContent, validateOcorrenciaContext, validateAtividadeContext } from "@/lib/prompts";
+import {
+  generatePrompt,
+  getSystemPrompt,
+  validateContent,
+  validateOcorrenciaContext,
+  validateAtividadeContext,
+  validateTecnicoContext,
+  generateTecnicoOfflineFallback,
+} from "@/lib/prompts";
 import { validateRequest } from "@/lib/validation";
-import { GenerateResponse } from "@/lib/types";
+import { GenerateResponse, TecnicoContext } from "@/lib/types";
 
 /**
  * Handler POST para requisições de geração
@@ -113,7 +121,29 @@ export async function POST(request: NextRequest): Promise<NextResponse<GenerateR
       }
     }
 
-    // 6. Validar conteúdo (obrigatório para planejamento e ocorrência)
+    if (type === "tecnico") {
+      if (!context || !("semana" in context)) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Contexto do Eixo Técnico é obrigatório",
+          },
+          { status: 400 }
+        );
+      }
+      const contextError = validateTecnicoContext(context as TecnicoContext);
+      if (contextError) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: contextError,
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    // 6. Validar conteúdo (obrigatório para planejamento, ocorrência e técnico)
     if (type !== "atividade") {
       const contentError = validateContent(content);
       if (contentError) {
@@ -130,6 +160,18 @@ export async function POST(request: NextRequest): Promise<NextResponse<GenerateR
     // 7. Verificar disponibilidade da API OpenAI
     const apiAvailable = await validateAPIKey();
     if (!apiAvailable) {
+      // Se for técnico, temos gerador offline instantâneo
+      if (type === "tecnico" && context) {
+        const fallbackResult = generateTecnicoOfflineFallback(
+          context as TecnicoContext,
+          content || ""
+        );
+        return NextResponse.json({
+          success: true,
+          result: fallbackResult,
+        });
+      }
+
       console.error("OpenAI API key validation failed");
       return NextResponse.json(
         {
@@ -140,17 +182,29 @@ export async function POST(request: NextRequest): Promise<NextResponse<GenerateR
       );
     }
 
-    // 8. Gerar conteúdo
+    // 8. Gerar conteúdo via IA
     const systemPrompt = getSystemPrompt();
     const userPrompt = generatePrompt(type, content || "", context);
 
-    const response = await generateContent(systemPrompt, userPrompt);
-
-    // 9. Retornar sucesso
-    return NextResponse.json({
-      success: true,
-      result: response.content,
-    });
+    try {
+      const response = await generateContent(systemPrompt, userPrompt);
+      return NextResponse.json({
+        success: true,
+        result: response.content,
+      });
+    } catch (genErr) {
+      if (type === "tecnico" && context) {
+        const fallbackResult = generateTecnicoOfflineFallback(
+          context as TecnicoContext,
+          content || ""
+        );
+        return NextResponse.json({
+          success: true,
+          result: fallbackResult,
+        });
+      }
+      throw genErr;
+    }
   } catch (error) {
     // Log apenas de mensagens de erro (sem dados sensíveis)
     console.error(

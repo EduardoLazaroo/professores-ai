@@ -2,9 +2,9 @@
  * Utilitários de validação para a aplicação
  */
 
-import { GenerateType, GenerateRequest, OcorrenciaContext, AtividadeContext } from "./types";
+import { GenerateType, GenerateRequest, OcorrenciaContext, AtividadeContext, TecnicoContext } from "./types";
 
-const VALID_TYPES: GenerateType[] = ["planejamento", "ocorrencia", "atividade"];
+const VALID_TYPES: GenerateType[] = ["planejamento", "ocorrencia", "atividade", "tecnico"];
 
 /**
  * Valida a requisição completa
@@ -33,7 +33,7 @@ export function validateRequest(
 
   const type = request.type as GenerateType;
 
-  // Validar conteúdo (obrigatório para planejamento e ocorrência)
+  // Validar conteúdo (obrigatório para planejamento, ocorrência e técnico)
   if (type !== "atividade") {
     if (!request.content || typeof request.content !== "string") {
       return { valid: false, error: "Campo 'content' é obrigatório" };
@@ -60,7 +60,7 @@ export function validateRequest(
       data: {
         type,
         content,
-        context: request.context as OcorrenciaContext | AtividadeContext | undefined,
+        context: request.context as OcorrenciaContext | AtividadeContext | TecnicoContext | undefined,
       },
     };
   }

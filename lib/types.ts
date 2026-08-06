@@ -2,12 +2,12 @@
  * Tipos e interfaces para a aplicação Professores AI
  */
 
-export type GenerateType = "planejamento" | "ocorrencia" | "atividade";
+export type GenerateType = "planejamento" | "ocorrencia" | "atividade" | "tecnico";
 
 export interface GenerateRequest {
   type: GenerateType;
   content: string;
-  context?: OcorrenciaContext | AtividadeContext;
+  context?: OcorrenciaContext | AtividadeContext | TecnicoContext;
 }
 
 export interface GenerateResponse {
@@ -47,10 +47,26 @@ export interface AtividadeContext {
   recursos: string[];
 }
 
+/**
+ * Contexto específico para Planejamento do Eixo Técnico (EPT)
+ */
+export interface TecnicoContext {
+  nomeProf: string;
+  turma: "2º Técnico" | "3º Técnico";
+  disciplina: string;
+  bimestre: "1º" | "2º" | "3º" | "4º";
+  semana: string;
+  dataInicio: string;
+  dataFim: string;
+  qtdAulas: number;
+  usoLaboratorio: boolean;
+}
+
 export const GENERATE_TYPES: Record<GenerateType, string> = {
   planejamento: "Planejamento Semanal",
   ocorrencia: "Ocorrência Formal",
   atividade: "Criador de Atividades",
+  tecnico: "Eixo Técnico (EPT)",
 };
 
 export const TABS_CONFIG: Array<{
@@ -59,7 +75,9 @@ export const TABS_CONFIG: Array<{
   icon: string;
 }> = [
   { id: "home", label: "Início", icon: "🏠" },
+  { id: "tecnico", label: "Eixo Técnico", icon: "💻" },
   { id: "planejamento", label: "Planejamento", icon: "📋" },
   { id: "ocorrencia", label: "Ocorrência", icon: "📝" },
   { id: "atividade", label: "Atividades", icon: "🎓" },
 ];
+

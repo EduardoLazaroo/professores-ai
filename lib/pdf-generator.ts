@@ -3,7 +3,195 @@
  * Cria um documento PDF estruturado com as informações da ocorrência
  */
 
-import { OcorrenciaContext } from "./types";
+import { OcorrenciaContext, TecnicoContext } from "./types";
+
+/**
+ * Gera um PDF do Planejamento Técnico usando jsPDF + html2canvas
+ */
+export async function generateTecnicoPDF(
+  context: TecnicoContext,
+  conteudo: string
+): Promise<void> {
+  try {
+    const { jsPDF } = await import("jspdf");
+    const html2canvas = (await import("html2canvas")).default;
+
+    const element = document.createElement("div");
+    element.innerHTML = createTecnicoHtmlContent(context, conteudo);
+    element.style.position = "absolute";
+    element.style.left = "-9999px";
+    element.style.width = "850px";
+    element.style.padding = "40px";
+    element.style.backgroundColor = "white";
+    element.style.fontFamily = "'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+
+    document.body.appendChild(element);
+
+    const canvas = await html2canvas(element, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: "#ffffff",
+    });
+
+    document.body.removeChild(element);
+
+    const imgData = canvas.toDataURL("image/png");
+    const imgWidth = 210; // A4 mm
+    const pageHeight = 297; // A4 mm
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    const pdf = new jsPDF("p", "mm", "a4");
+    let heightLeft = imgHeight;
+    let position = 0;
+    let pageNum = 1;
+
+    pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pageNum++;
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+    }
+
+    const totalPages = pageNum;
+    for (let i = 1; i <= totalPages; i++) {
+      pdf.setPage(i);
+      pdf.setFontSize(9);
+      pdf.setTextColor(120, 120, 120);
+      pdf.text(
+        `EE MONSENHOR BICUDO - EPT | Página ${i} de ${totalPages}`,
+        105,
+        290,
+        { align: "center" }
+      );
+    }
+
+    const filename = `PlanoTecnico_${context.disciplina?.replace(/\s+/g, "_") || "TI"}_${context.semana?.replace(/\s+/g, "_") || "Semana"}.pdf`;
+    pdf.save(filename);
+  } catch (error) {
+    console.error("Erro ao gerar PDF do Eixo Técnico:", error);
+    fallbackTecnicoHtmlDownload(context, conteudo);
+  }
+}
+
+function fallbackTecnicoHtmlDownload(context: TecnicoContext, conteudo: string): void {
+  const htmlContent = createTecnicoHtmlContent(context, conteudo);
+  const blob = new Blob([htmlContent], { type: "text/html;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `PlanoTecnico_${context.disciplina || "TI"}_${context.semana || "Semana"}.html`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setTimeout(() => URL.revokeObjectURL(url), 100);
+}
+
+function createTecnicoHtmlContent(context: TecnicoContext, conteudo: string): string {
+  // Parse sections in parenthesized titles like (APRENDIZAGENS ESSENCIAIS)
+  const sections: { title: string; body: string }[] = [];
+  const regex = /\(([^)]+)\)\s*([\s\S]*?)(?=\([^)]+\)|$)/g;
+  let match;
+
+  while ((match = regex.exec(conteudo)) !== null) {
+    sections.push({
+      title: match[1].trim(),
+      body: match[2].trim(),
+    });
+  }
+
+  const sectionsHtml =
+    sections.length > 0
+      ? sections
+          .map(
+            (sec) => `
+        <div style="margin-bottom: 20px; page-break-inside: avoid;">
+          <h3 style="font-size: 13px; color: #1e3a8a; background: #eff6ff; padding: 8px 12px; border-left: 4px solid #2563eb; margin-bottom: 8px; text-transform: uppercase; font-weight: bold; border-radius: 4px;">
+            ${sec.title}
+          </h3>
+          <div style="font-size: 13px; color: #334155; line-height: 1.6; white-space: pre-wrap; padding: 0 8px;">
+            ${sec.body}
+          </div>
+        </div>
+      `
+          )
+          .join("")
+      : `<div style="font-size: 13px; color: #334155; line-height: 1.6; white-space: pre-wrap;">${conteudo}</div>`;
+
+  return `
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+      <meta charset="UTF-8">
+      <title>Plano de Aula Semanal - Eixo Técnico EPT</title>
+    </head>
+    <body style="background: white; color: #0f172a; margin: 0; padding: 0;">
+      <div style="max-width: 850px; margin: 0 auto; padding: 20px;">
+        
+        <!-- CABEÇALHO INSTITUCIONAL -->
+        <div style="text-align: center; border-bottom: 3px double #1e3a8a; padding-bottom: 12px; margin-bottom: 20px;">
+          <h1 style="font-size: 20px; font-weight: 800; color: #1e3a8a; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">
+            ESCOLA ESTADUAL MONSENHOR BICUDO
+          </h1>
+          <h2 style="font-size: 14px; font-weight: 600; color: #2563eb; margin: 4px 0 0 0; text-transform: uppercase;">
+            EDUCAÇÃO PROFISSIONAL E TECNOLÓGICA (EPT) — EIXO TÉCNICO EM TI
+          </h2>
+          <p style="font-size: 11px; color: #64748b; margin: 4px 0 0 0;">
+            PLANO DE AULA SEMANAL PADRONIZADO
+          </p>
+        </div>
+
+        <!-- TABELA DE IDENTIFICAÇÃO -->
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 12px;">
+          <tbody>
+            <tr>
+              <td style="border: 1px solid #cbd5e1; background: #f8fafc; padding: 8px 12px; font-weight: bold; width: 20%; color: #334155;">PROFESSOR(A):</td>
+              <td style="border: 1px solid #cbd5e1; padding: 8px 12px; color: #0f172a;" colspan="3">${context.nomeProf || "Não especificado"}</td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #cbd5e1; background: #f8fafc; padding: 8px 12px; font-weight: bold; color: #334155;">TURMA / SÉRIE:</td>
+              <td style="border: 1px solid #cbd5e1; padding: 8px 12px; color: #0f172a;">${context.turma || "-"}</td>
+              <td style="border: 1px solid #cbd5e1; background: #f8fafc; padding: 8px 12px; font-weight: bold; width: 20%; color: #334155;">DISCIPLINA:</td>
+              <td style="border: 1px solid #cbd5e1; padding: 8px 12px; color: #0f172a;">${context.disciplina || "-"}</td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #cbd5e1; background: #f8fafc; padding: 8px 12px; font-weight: bold; color: #334155;">BIMESTRE / SEMANA:</td>
+              <td style="border: 1px solid #cbd5e1; padding: 8px 12px; color: #0f172a;">${context.bimestre || "-"} Bimestre — ${context.semana || "-"}</td>
+              <td style="border: 1px solid #cbd5e1; background: #f8fafc; padding: 8px 12px; font-weight: bold; color: #334155;">PERÍODO:</td>
+              <td style="border: 1px solid #cbd5e1; padding: 8px 12px; color: #0f172a;">${context.dataInicio || "-"} até ${context.dataFim || "-"}</td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #cbd5e1; background: #f8fafc; padding: 8px 12px; font-weight: bold; color: #334155;">QTD DE AULAS:</td>
+              <td style="border: 1px solid #cbd5e1; padding: 8px 12px; color: #0f172a;">${context.qtdAulas || 3} aulas previstos</td>
+              <td style="border: 1px solid #cbd5e1; background: #f8fafc; padding: 8px 12px; font-weight: bold; color: #334155;">LABORATÓRIO TÉCNICO:</td>
+              <td style="border: 1px solid #cbd5e1; padding: 8px 12px; color: #0f172a;">
+                <span style="display: inline-block; padding: 2px 8px; border-radius: 12px; font-weight: bold; font-size: 11px; background: ${context.usoLaboratorio ? "#dcfce7" : "#f1f5f9"}; color: ${context.usoLaboratorio ? "#166534" : "#475569"};">
+                  ${context.usoLaboratorio ? "SIM (Lab TI)" : "NÃO (Sala Comum)"}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- CORPO DO PLANO -->
+        <div style="margin-top: 10px;">
+          ${sectionsHtml}
+        </div>
+
+        <!-- RODAPÉ -->
+        <div style="margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 12px; text-align: center; font-size: 10px; color: #94a3b8;">
+          Plano de Aula Semanal do Eixo Técnico EPT • EE Monsenhor Bicudo • Documento Pedagógico Institucional
+        </div>
+
+      </div>
+    </body>
+    </html>
+  `;
+}
 
 /**
  * Gera um PDF da ocorrência usando jsPDF + html2canvas
@@ -290,6 +478,41 @@ function createHtmlContent(context: OcorrenciaContext, conteudo: string): string
     </html>
   `;
 }
+
+/**
+ * Formata data para o padrão brasileiro
+ */
+function formatDate(dateString: string): string {
+  try {
+    const date = new Date(dateString + "T00:00:00");
+    return date.toLocaleDateString("pt-BR", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  } catch {
+    return dateString;
+  }
+}
+
+/**
+ * Capitaliza a primeira letra
+ */
+function capitalizeFirstLetter(str: string): string {
+  if (!str) return "";
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+/**
+ * Escapa HTML para evitar injeção
+ */
+function escapeHtml(text: string): string {
+  const div = document.createElement("div");
+  div.textContent = text;
+  return div.innerHTML;
+}
+
 
 /**
  * Formata data para o padrão brasileiro

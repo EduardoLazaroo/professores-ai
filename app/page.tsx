@@ -6,9 +6,15 @@ import { HomeScreen } from "@/app/components/HomeScreen";
 import { PlanejamentoScreen } from "@/app/components/screens/PlanejamentoScreen";
 import { OcorrenciaScreen } from "@/app/components/screens/OcorrenciaScreen";
 import { AtividadeScreen } from "@/app/components/screens/AtividadeScreen";
-import { GenerateResponse, OcorrenciaContext, AtividadeContext } from "@/lib/types";
+import { TecnicoScreen } from "@/app/components/screens/TecnicoScreen";
+import {
+  GenerateResponse,
+  OcorrenciaContext,
+  AtividadeContext,
+  TecnicoContext,
+} from "@/lib/types";
 
-type TabId = "home" | "planejamento" | "ocorrencia" | "atividade";
+type TabId = "home" | "planejamento" | "ocorrencia" | "atividade" | "tecnico";
 
 interface TabState {
   content: string;
@@ -41,6 +47,86 @@ export default function Home() {
     error: "",
     loading: false,
   });
+
+  const [tecnicoState, setTecnicoState] = useState<TabState>({
+    content: "",
+    result: "",
+    error: "",
+    loading: false,
+  });
+
+  const [tecnicoContext, setTecnicoContext] = useState<TecnicoContext>({
+    nomeProf: "",
+    turma: "2º Técnico",
+    disciplina: "Lógica de Programação",
+    bimestre: "1º",
+    semana: "Semana 01",
+    dataInicio: "",
+    dataFim: "",
+    qtdAulas: 3,
+    usoLaboratorio: true,
+  });
+
+  /**
+   * Gera conteúdo para Eixo Técnico
+   */
+  const handleTecnicoGenerate = useCallback(
+    async (content: string, context: TecnicoContext) => {
+      setTecnicoState((prev) => ({
+        ...prev,
+        loading: true,
+        error: "",
+      }));
+
+      try {
+        const response = await fetch("/api/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "tecnico",
+            content: content.trim(),
+            context,
+          }),
+        });
+
+        const data: GenerateResponse = await response.json();
+
+        if (!response.ok) {
+          setTecnicoState((prev) => ({
+            ...prev,
+            error: data.error || "Erro ao processar solicitação",
+            loading: false,
+          }));
+          return;
+        }
+
+        if (data.success && data.result) {
+          setTecnicoState((prev) => ({
+            ...prev,
+            result: data.result || "",
+            error: "",
+            loading: false,
+          }));
+        } else {
+          setTecnicoState((prev) => ({
+            ...prev,
+            error: data.error || "Erro desconhecido",
+            loading: false,
+          }));
+        }
+      } catch (err) {
+        setTecnicoState((prev) => ({
+          ...prev,
+          error:
+            err instanceof Error
+              ? err.message
+              : "Erro de conexão. Tente novamente.",
+          loading: false,
+        }));
+      }
+    },
+    []
+  );
 
   /**
    * Gera conteúdo para Planejamento
@@ -281,6 +367,29 @@ export default function Home() {
             error={atividadeState.error}
             loading={atividadeState.loading}
             onGenerate={handleAtividadeGenerate}
+          />
+        )}
+
+        {activeTab === "tecnico" && (
+          <TecnicoScreen
+            context={tecnicoContext}
+            setContext={setTecnicoContext}
+            content={tecnicoState.content}
+            result={tecnicoState.result}
+            error={tecnicoState.error}
+            loading={tecnicoState.loading}
+            onContentChange={(content) =>
+              setTecnicoState((prev) => ({ ...prev, content }))
+            }
+            onGenerate={handleTecnicoGenerate}
+            onReset={() =>
+              setTecnicoState({
+                content: "",
+                result: "",
+                error: "",
+                loading: false,
+              })
+            }
           />
         )}
       </div>

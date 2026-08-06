@@ -7,7 +7,7 @@
 
 import { TABS_CONFIG } from "@/lib/types";
 
-type TabId = "home" | "planejamento" | "ocorrencia" | "atividade";
+type TabId = "home" | "planejamento" | "ocorrencia" | "atividade" | "tecnico";
 
 interface TabsNavigationProps {
   activeTab: TabId;
