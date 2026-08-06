@@ -36,41 +36,85 @@ export async function generateTecnicoPDF(
 
     document.body.removeChild(element);
 
-    const imgData = canvas.toDataURL("image/png");
-    const imgWidth = 210; // A4 mm
-    const pageHeight = 297; // A4 mm
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
     const pdf = new jsPDF("p", "mm", "a4");
-    let heightLeft = imgHeight;
-    let position = 0;
-    let pageNum = 1;
+    const pageWidth = 210; // A4 mm
+    const pageHeight = 297; // A4 mm
 
-    pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-    heightLeft -= pageHeight;
+    // Margens em mm para visualização impecável
+    const marginX = 10;
+    const marginTop = 15;
+    const marginBottom = 15;
 
-    while (heightLeft > 0) {
-      position = heightLeft - imgHeight;
-      pdf.addPage();
-      pageNum++;
-      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+    const printableWidth = pageWidth - marginX * 2; // 190 mm
+    const printableHeight = pageHeight - marginTop - marginBottom; // 267 mm
+
+    // Proporção px/mm do canvas gerado
+    const pxPerMm = canvas.width / printableWidth;
+    const sliceHeightPx = Math.floor(printableHeight * pxPerMm);
+
+    let startYPx = 0;
+    let pageIndex = 0;
+
+    while (startYPx < canvas.height) {
+      if (pageIndex > 0) {
+        pdf.addPage();
+      }
+
+      const currentSlicePx = Math.min(sliceHeightPx, canvas.height - startYPx);
+      const currentSliceMm = currentSlicePx / pxPerMm;
+
+      // Criar canvas temporário da página
+      const pageCanvas = document.createElement("canvas");
+      pageCanvas.width = canvas.width;
+      pageCanvas.height = currentSlicePx;
+
+      const ctx = pageCanvas.getContext("2d");
+      if (ctx) {
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+        ctx.drawImage(
+          canvas,
+          0,
+          startYPx,
+          canvas.width,
+          currentSlicePx,
+          0,
+          0,
+          canvas.width,
+          currentSlicePx
+        );
+      }
+
+      const pageImgData = pageCanvas.toDataURL("image/png");
+      const destY = pageIndex === 0 ? 10 : marginTop;
+      pdf.addImage(
+        pageImgData,
+        "PNG",
+        marginX,
+        destY,
+        printableWidth,
+        currentSliceMm
+      );
+
+      startYPx += sliceHeightPx;
+      pageIndex++;
     }
 
-    const totalPages = pageNum;
+    // Rodapé institucional com número de páginas
+    const totalPages = pageIndex;
     for (let i = 1; i <= totalPages; i++) {
       pdf.setPage(i);
-      pdf.setFontSize(9);
-      pdf.setTextColor(120, 120, 120);
+      pdf.setFontSize(8);
+      pdf.setTextColor(100, 116, 139);
       pdf.text(
-        `EE MONSENHOR BICUDO - EPT | Página ${i} de ${totalPages}`,
+        `EE MONSENHOR BICUDO • Dev. Sistemas • Página ${i} de ${totalPages}`,
         105,
-        290,
+        289,
         { align: "center" }
       );
     }
 
-    const filename = `PlanoTecnico_${context.disciplina?.replace(/\s+/g, "_") || "TI"}_${context.semana?.replace(/\s+/g, "_") || "Semana"}.pdf`;
+    const filename = `PlanoTecnico_${context.disciplina?.replace(/\s+/g, "_") || "DevSistemas"}_${context.semana?.replace(/\s+/g, "_") || "Semana"}.pdf`;
     pdf.save(filename);
   } catch (error) {
     console.error("Erro ao gerar PDF do Eixo Técnico:", error);
@@ -84,7 +128,7 @@ function fallbackTecnicoHtmlDownload(context: TecnicoContext, conteudo: string):
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `PlanoTecnico_${context.disciplina || "TI"}_${context.semana || "Semana"}.html`;
+  link.download = `PlanoTecnico_${context.disciplina || "DevSistemas"}_${context.semana || "Semana"}.html`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -110,24 +154,24 @@ function createTecnicoHtmlContent(context: TecnicoContext, conteudo: string): st
           .map(
             (sec) => `
         <div style="margin-bottom: 20px; page-break-inside: avoid;">
-          <h3 style="font-size: 13px; color: #1e3a8a; background: #eff6ff; padding: 8px 12px; border-left: 4px solid #2563eb; margin-bottom: 8px; text-transform: uppercase; font-weight: bold; border-radius: 4px;">
+          <h3 style="font-size: 13px; color: #1e3a8a; background: #eff6ff; padding: 8px 12px; border-left: 4px solid #2563eb; margin-bottom: 6px; text-transform: uppercase; font-weight: bold; border-radius: 4px;">
             ${sec.title}
           </h3>
-          <div style="font-size: 13px; color: #334155; line-height: 1.6; white-space: pre-wrap; padding: 0 8px;">
+          <div style="font-size: 13px; color: #334155; line-height: 1.6; white-space: pre-wrap; padding: 0; margin-top: 4px;">
             ${sec.body}
           </div>
         </div>
       `
           )
           .join("")
-      : `<div style="font-size: 13px; color: #334155; line-height: 1.6; white-space: pre-wrap;">${conteudo}</div>`;
+      : `<div style="font-size: 13px; color: #334155; line-height: 1.6; white-space: pre-wrap; padding: 0;">${conteudo}</div>`;
 
   return `
     <!DOCTYPE html>
     <html lang="pt-BR">
     <head>
       <meta charset="UTF-8">
-      <title>Plano de Aula Semanal - Eixo Técnico EPT</title>
+      <title>Plano de Aula Semanal — Desenvolvimento de Sistemas</title>
     </head>
     <body style="background: white; color: #0f172a; margin: 0; padding: 0;">
       <div style="max-width: 850px; margin: 0 auto; padding: 20px;">
@@ -138,10 +182,10 @@ function createTecnicoHtmlContent(context: TecnicoContext, conteudo: string): st
             ESCOLA ESTADUAL MONSENHOR BICUDO
           </h1>
           <h2 style="font-size: 14px; font-weight: 600; color: #2563eb; margin: 4px 0 0 0; text-transform: uppercase;">
-            EDUCAÇÃO PROFISSIONAL E TECNOLÓGICA (EPT) — EIXO TÉCNICO EM TI
+            EDUCAÇÃO PROFISSIONAL TÉCNICO DE DESENVOLVIMENTO DE SISTEMAS
           </h2>
-          <p style="font-size: 11px; color: #64748b; margin: 4px 0 0 0;">
-            PLANO DE AULA SEMANAL PADRONIZADO
+          <p style="font-size: 11px; color: #64748b; margin: 4px 0 0 0; font-weight: bold;">
+            PLANO DE AULA SEMANAL
           </p>
         </div>
 
@@ -166,11 +210,11 @@ function createTecnicoHtmlContent(context: TecnicoContext, conteudo: string): st
             </tr>
             <tr>
               <td style="border: 1px solid #cbd5e1; background: #f8fafc; padding: 8px 12px; font-weight: bold; color: #334155;">QTD DE AULAS:</td>
-              <td style="border: 1px solid #cbd5e1; padding: 8px 12px; color: #0f172a;">${context.qtdAulas || 3} aulas previstos</td>
+              <td style="border: 1px solid #cbd5e1; padding: 8px 12px; color: #0f172a;">${context.qtdAulas || 3} aulas previstas</td>
               <td style="border: 1px solid #cbd5e1; background: #f8fafc; padding: 8px 12px; font-weight: bold; color: #334155;">LABORATÓRIO TÉCNICO:</td>
               <td style="border: 1px solid #cbd5e1; padding: 8px 12px; color: #0f172a;">
                 <span style="display: inline-block; padding: 2px 8px; border-radius: 12px; font-weight: bold; font-size: 11px; background: ${context.usoLaboratorio ? "#dcfce7" : "#f1f5f9"}; color: ${context.usoLaboratorio ? "#166534" : "#475569"};">
-                  ${context.usoLaboratorio ? "SIM (Lab TI)" : "NÃO (Sala Comum)"}
+                  ${context.usoLaboratorio ? "SIM (Laboratório: Sala de Leitura)" : "NÃO (Sala Comum)"}
                 </span>
               </td>
             </tr>
@@ -184,7 +228,7 @@ function createTecnicoHtmlContent(context: TecnicoContext, conteudo: string): st
 
         <!-- RODAPÉ -->
         <div style="margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 12px; text-align: center; font-size: 10px; color: #94a3b8;">
-          Plano de Aula Semanal do Eixo Técnico EPT • EE Monsenhor Bicudo • Documento Pedagógico Institucional
+          Plano de Aula Semanal • Educação Profissional Técnico de Desenvolvimento de Sistemas • EE Monsenhor Bicudo
         </div>
 
       </div>

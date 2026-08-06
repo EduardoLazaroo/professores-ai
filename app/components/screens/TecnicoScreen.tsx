@@ -29,28 +29,30 @@ export const TecnicoScreen: React.FC<TecnicoScreenProps> = ({
   onReset,
 }) => {
   return (
-    <div className="py-6 px-4">
+    <div className="py-6 px-4 space-y-8">
       {error && (
-        <div className="max-w-4xl mx-auto mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center justify-between shadow-sm">
+        <div className="max-w-4xl mx-auto bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center justify-between shadow-sm">
           <span>⚠️ {error}</span>
         </div>
       )}
 
-      {result ? (
-        <TecnicoResultSection
-          context={context}
-          resultText={result}
-          onReset={onReset}
-        />
-      ) : (
-        <TecnicoFormSection
-          context={context}
-          setContext={setContext}
-          content={content}
-          setContent={onContentChange}
-          onSubmit={() => onGenerate(content, context)}
-          isLoading={loading}
-        />
+      <TecnicoFormSection
+        context={context}
+        setContext={setContext}
+        content={content}
+        setContent={onContentChange}
+        onSubmit={() => onGenerate(content, context)}
+        isLoading={loading}
+      />
+
+      {result && (
+        <div id="plano-resultado-section">
+          <TecnicoResultSection
+            context={context}
+            resultText={result}
+            onReset={onReset}
+          />
+        </div>
       )}
     </div>
   );

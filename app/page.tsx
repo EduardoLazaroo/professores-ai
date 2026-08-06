@@ -23,6 +23,15 @@ interface TabState {
   loading: boolean;
 }
 
+function getDefaultDateOffset(offsetDays: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
+}
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState<TabId>("home");
 
@@ -61,8 +70,8 @@ export default function Home() {
     disciplina: "Lógica de Programação",
     bimestre: "1º",
     semana: "Semana 01",
-    dataInicio: "",
-    dataFim: "",
+    dataInicio: getDefaultDateOffset(3),
+    dataFim: getDefaultDateOffset(7),
     qtdAulas: 3,
     usoLaboratorio: true,
   });

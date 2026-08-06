@@ -39,7 +39,7 @@ export function HomeScreen({ onWhatsAppClick, onPixCopy }: HomeScreenProps) {
           <div className="flex items-center space-x-3 mb-2">
             <span className="text-2xl">💻</span>
             <h2 className="text-xl font-bold text-blue-300">
-              Novo: Planejamento Eixo Técnico (EPT)
+              Novo: Técnico em Desenvolvimento de Sistemas
             </h2>
           </div>
           <p className="text-slate-200 text-sm leading-relaxed mb-3">

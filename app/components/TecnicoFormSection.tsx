@@ -103,10 +103,10 @@ export const TecnicoFormSection: React.FC<TecnicoFormSectionProps> = ({
           </div>
           <div>
             <h2 className="text-2xl font-bold text-slate-800">
-              Eixo Técnico (EPT) — EE Monsenhor Bicudo
+              Educação Profissional Técnico de Desenvolvimento de Sistemas
             </h2>
             <p className="text-sm text-slate-500">
-              Plano de Aula Semanal padronizado para a Educação Profissional e Tecnológica (TI).
+              Plano de Aula Semanal para a Educação Profissional Técnico de Desenvolvimento de Sistemas.
             </p>
           </div>
         </div>
@@ -292,7 +292,7 @@ export const TecnicoFormSection: React.FC<TecnicoFormSectionProps> = ({
                 : "bg-slate-200 text-slate-600 hover:bg-slate-300"
             }`}
           >
-            {context.usoLaboratorio ? "Sim (Laboratório TI)" : "Não (Sala Comum)"}
+            {context.usoLaboratorio ? "Sim (Laboratório: Sala de Leitura)" : "Não (Sala Comum)"}
           </button>
         </div>
       </div>

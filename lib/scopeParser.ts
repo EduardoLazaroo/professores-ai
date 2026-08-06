@@ -22,6 +22,23 @@ export interface ParsedScopeResult {
   conteudo: string;
 }
 
+export function sanitizeRawScopeText(rawText: string): string {
+  if (!rawText || typeof rawText !== "string") return "";
+
+  let cleaned = rawText.replace(/\r\n/g, "\n");
+
+  // Remove pontos isolados ou tabulados em linhas vazias
+  cleaned = cleaned.replace(/\n\s*\.\s*(?=\n|$)/g, "\n");
+
+  // Corrige ponto final deslocado para o início da linha seguinte (ex: "\n. Devem" -> ". Devem")
+  cleaned = cleaned.replace(/\n\s*\.\s*([A-ZÀ-Ú])/g, ". $1");
+
+  // Junta linhas com quebra no meio de frase (ex: "ping\npara validação" -> "ping para validação")
+  cleaned = cleaned.replace(/([a-zA-Z0-9,])\n\s*([a-zà-ú])/g, "$1 $2");
+
+  return cleaned.trim();
+}
+
 export function parseScopeText(rawText: string): ParsedScopeResult {
   if (!rawText || typeof rawText !== "string") {
     return {
@@ -37,7 +54,7 @@ export function parseScopeText(rawText: string): ParsedScopeResult {
     };
   }
 
-  const cleanText = rawText.trim();
+  const cleanText = sanitizeRawScopeText(rawText);
 
   // --- TRATAMENTO PARA TABELAS (TSV / EXCEL / GOOGLE SHEETS) ---
   if (cleanText.includes("\t")) {

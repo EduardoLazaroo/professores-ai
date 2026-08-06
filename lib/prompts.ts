@@ -14,11 +14,17 @@ import { parseScopeText } from "./scopeParser";
 const SYSTEM_PROMPT = `Você é um assistente especialista em pedagogia da Educação Profissional e Tecnológica (EPT) e Educação Básica, ajudando professores com suas tarefas administrativas e planejamentos pedagógicos formais. Responda sempre de forma clara, profissional, concisa e sem usar markdown ou formatação especial. Use apenas texto estruturado simples com os títulos solicitados entre parênteses.`;
 
 /**
- * PLANEJAMENTO DO EIXO TÉCNICO (EPT - EE MONSENHOR BICUDO)
+ * PLANEJAMENTO DO EIXO TÉCNICO (EDUCAÇÃO PROFISSIONAL TÉCNICO DE DESENVOLVIMENTO DE SISTEMAS - EE MONSENHOR BICUDO)
  */
-const TECNICO_EPT_PROMPT = `Você é um Especialista em Pedagogia da Educação Profissional e Tecnológica (EPT), focado nos Cursos Técnicos de Tecnologia da Informação da Escola Estadual Monsenhor Bicudo.
+const TECNICO_EPT_PROMPT = `Você é um Especialista em Pedagogia da Educação Profissional Técnico de Desenvolvimento de Sistemas, focado nos Cursos Técnicos de Tecnologia da Informação da Escola Estadual Monsenhor Bicudo.
 
 Com base nos dados da turma e no escopo fornecido, elabore um planejamento semanal completo, altamente prático e voltado para o mercado de trabalho em TI.
+
+REGRAS CRÍTICAS DE HIGIENIZAÇÃO DE TEXTO DO ESCOPO (OBRIGATÓRIO):
+O escopo enviado pelo professor é fruto de colagens brutas de planilhas Excel/Google Sheets ou arquivos PDF e pode conter quebras acidentais de linha ou pontuações deslocadas. Você DEVE rigorosamente:
+1. HIGIENIZAR e UNIR frases e termos técnicos cortados no meio da linha (ex: "ping \n para validação" DEVE ser corrigido para "ping para validação"; "AWS, GCP, Azure \n ." DEVE ser higienizado para "AWS, GCP e Azure.").
+2. REMOVER pontuações soltas ou desalinhadas no início ou fim de linhas (ex: ". Devem" DEVE ser corrigido para "Devem..."; frases NUNCA podem começar com ponto final isolado).
+3. ESTRUTURAR todos os conceitos, ferramentas e habilidades em frases completas, fluidas, didáticas e gramaticalmente perfeitas.
 
 Dados do Curso & Turma:
 - Professor: {nomeProf}
@@ -241,7 +247,7 @@ export function generatePrompt(
         .replace(
           "{usoLaboratorio}",
           tecnicoCtx.usoLaboratorio
-            ? "Sim (Laboratório Técnico de Informática)"
+            ? "Sim (Laboratório: Sala de Leitura)"
             : "Não (Sala de aula comum)"
         )
         .replace("{content}", content || "");

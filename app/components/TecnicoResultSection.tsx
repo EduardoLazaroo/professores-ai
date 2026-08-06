@@ -78,10 +78,10 @@ export const TecnicoResultSection: React.FC<TecnicoResultSectionProps> = ({
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
           <div>
             <span className="text-xs uppercase tracking-wider font-bold text-blue-400">
-              EE Monsenhor Bicudo — EPT
+              EE Monsenhor Bicudo — Dev. Sistemas
             </span>
             <h2 className="text-xl md:text-2xl font-bold text-white">
-              Plano de Aula Semanal do Eixo Técnico
+              Plano de Aula Semanal — Técnico em Desenvolvimento de Sistemas
             </h2>
           </div>
           <div className="flex items-center space-x-3">
@@ -126,13 +126,13 @@ export const TecnicoResultSection: React.FC<TecnicoResultSectionProps> = ({
             </strong>
           </div>
           <div>
-            <span className="text-slate-400 block">Laboratório TI:</span>
+            <span className="text-slate-400 block">Laboratório:</span>
             <strong
               className={
                 context.usoLaboratorio ? "text-emerald-400" : "text-amber-400"
               }
             >
-              {context.usoLaboratorio ? "Sim (Lab Prático)" : "Não (Sala Comum)"}
+              {context.usoLaboratorio ? "Sim (Laboratório: Sala de Leitura)" : "Não (Sala Comum)"}
             </strong>
           </div>
         </div>

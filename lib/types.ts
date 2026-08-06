@@ -48,7 +48,7 @@ export interface AtividadeContext {
 }
 
 /**
- * Contexto específico para Planejamento do Eixo Técnico (EPT)
+ * Contexto específico para Planejamento do Eixo Técnico (Desenvolvimento de Sistemas)
  */
 export interface TecnicoContext {
   nomeProf: string;
@@ -66,7 +66,7 @@ export const GENERATE_TYPES: Record<GenerateType, string> = {
   planejamento: "Planejamento Semanal",
   ocorrencia: "Ocorrência Formal",
   atividade: "Criador de Atividades",
-  tecnico: "Eixo Técnico (EPT)",
+  tecnico: "Técnico (Dev. Sistemas)",
 };
 
 export const TABS_CONFIG: Array<{
