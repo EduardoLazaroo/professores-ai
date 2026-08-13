@@ -19,6 +19,7 @@ import {
   Footer,
 } from "docx";
 import { TecnicoContext } from "./types";
+import { formatExportFilename } from "./filename-utils";
 
 /**
  * Gera e realiza o download de um arquivo .docx formatado no padrão institucional
@@ -393,7 +394,7 @@ export async function generateTecnicoDocx(
   });
 
   const blob = await Packer.toBlob(doc);
-  const filename = `PAS_MODELO_2026_${context.disciplina?.replace(/\s+/g, "_") || "DevSistemas"}_${context.semana?.replace(/\s+/g, "_") || "Semana"}.docx`;
+  const filename = formatExportFilename(context.disciplina, context.semana, "docx");
 
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);

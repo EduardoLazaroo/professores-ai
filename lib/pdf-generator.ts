@@ -4,6 +4,7 @@
  */
 
 import { OcorrenciaContext, TecnicoContext } from "./types";
+import { formatExportFilename } from "./filename-utils";
 
 /**
  * Gera um PDF do Planejamento Técnico usando jsPDF + html2canvas em formato Paisagem (Landscape)
@@ -115,7 +116,7 @@ export async function generateTecnicoPDF(
       );
     }
 
-    const filename = `PAS_MODELO_2026_${context.disciplina?.replace(/\s+/g, "_") || "DevSistemas"}_${context.semana?.replace(/\s+/g, "_") || "Semana"}.pdf`;
+    const filename = formatExportFilename(context.disciplina, context.semana, "pdf");
     pdf.save(filename);
   } catch (error) {
     console.error("Erro ao gerar PDF do Eixo Técnico:", error);
@@ -129,7 +130,7 @@ function fallbackTecnicoHtmlDownload(context: TecnicoContext, conteudo: string):
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `PAS_MODELO_2026_${context.disciplina || "DevSistemas"}_${context.semana || "Semana"}.html`;
+  link.download = formatExportFilename(context.disciplina, context.semana, "html");
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
