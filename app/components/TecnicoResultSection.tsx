@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { TecnicoContext } from "@/lib/types";
 import { generateTecnicoPDF } from "@/lib/pdf-generator";
+import { generateTecnicoDocx } from "@/lib/docx-generator";
 
 interface TecnicoResultSectionProps {
   context: TecnicoContext;
@@ -21,7 +22,8 @@ export const TecnicoResultSection: React.FC<TecnicoResultSectionProps> = ({
   onReset,
 }) => {
   const [sections, setSections] = useState<SectionBlock[]>([]);
-  const [isExporting, setIsExporting] = useState(false);
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
+  const [isExportingDocx, setIsExportingDocx] = useState(false);
 
   // Extrair seções entre parênteses ex: (APRENDIZAGENS ESSENCIAIS)
   useEffect(() => {
@@ -59,48 +61,74 @@ export const TecnicoResultSection: React.FC<TecnicoResultSectionProps> = ({
   };
 
   const handleDownloadPDF = async () => {
-    setIsExporting(true);
+    setIsExportingPDF(true);
     try {
       const compiled = getCompiledText();
       await generateTecnicoPDF(context, compiled);
     } catch (err) {
       console.error("Erro ao exportar PDF:", err);
-      alert("Houve um problema ao gerar o PDF. Tentando download em HTML.");
+      alert("Houve um problema ao gerar o PDF.");
     } finally {
-      setIsExporting(false);
+      setIsExportingPDF(false);
+    }
+  };
+
+  const handleDownloadDocx = async () => {
+    setIsExportingDocx(true);
+    try {
+      const compiled = getCompiledText();
+      await generateTecnicoDocx(context, compiled);
+    } catch (err) {
+      console.error("Erro ao exportar Word (.docx):", err);
+      alert("Houve um problema ao gerar o documento Word.");
+    } finally {
+      setIsExportingDocx(false);
     }
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6 bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-slate-100">
+    <div className="w-full max-w-5xl mx-auto space-y-6 bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-slate-100">
       {/* CABEÇALHO DE RESULTADO E METADADOS */}
       <div className="bg-slate-900 text-white p-6 rounded-xl shadow-md space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
           <div>
             <span className="text-xs uppercase tracking-wider font-bold text-blue-400">
-              EE Monsenhor Bicudo — Dev. Sistemas
+              EE Monsenhor Bicudo — Matriz Oficial PAS 2026
             </span>
             <h2 className="text-xl md:text-2xl font-bold text-white">
               Plano de Aula Semanal — Técnico em Desenvolvimento de Sistemas
             </h2>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={onReset}
-              className="px-4 py-2 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition"
+              className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition"
             >
               ← Novo Plano
             </button>
             <button
-              onClick={handleDownloadPDF}
-              disabled={isExporting}
-              className="px-5 py-2 text-xs font-bold rounded-lg bg-emerald-500 hover:bg-emerald-600 text-slate-950 transition shadow-lg shadow-emerald-500/20 flex items-center space-x-1.5"
+              onClick={handleDownloadDocx}
+              disabled={isExportingDocx}
+              className="px-4 py-2 text-xs font-bold rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition shadow-md flex items-center space-x-1.5"
             >
-              {isExporting ? (
+              {isExportingDocx ? (
+                <span>Gerando Word...</span>
+              ) : (
+                <>
+                  <span>📝 Baixar Word (.docx)</span>
+                </>
+              )}
+            </button>
+            <button
+              onClick={handleDownloadPDF}
+              disabled={isExportingPDF}
+              className="px-4 py-2 text-xs font-bold rounded-lg bg-emerald-500 hover:bg-emerald-600 text-slate-950 transition shadow-md flex items-center space-x-1.5"
+            >
+              {isExportingPDF ? (
                 <span>Gerando PDF...</span>
               ) : (
                 <>
-                  <span>📄 Gerar e Baixar PDF</span>
+                  <span>📄 Baixar PDF (Paisagem)</span>
                 </>
               )}
             </button>
@@ -141,12 +169,12 @@ export const TecnicoResultSection: React.FC<TecnicoResultSectionProps> = ({
       {/* AVISO DE EDIÇÃO */}
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs text-blue-800 flex items-center justify-between">
         <span>
-          ✏️ <strong>Editor Interativo:</strong> Você pode ajustar ou editar o texto das 10 seções abaixo diretamente antes de exportar o PDF.
+          ✏️ <strong>Editor Interativo:</strong> Você pode ajustar o texto das 10 seções da Matriz PAS_MODELO_2026 antes de baixar em PDF ou Word (.docx).
         </span>
       </div>
 
       {/* SEÇÕES EDITÁVEIS */}
-      <div className="space-y-5">
+      <div className="space-y-4">
         {sections.map((sec, idx) => (
           <div
             key={idx}
@@ -157,7 +185,7 @@ export const TecnicoResultSection: React.FC<TecnicoResultSectionProps> = ({
                 {sec.title}
               </span>
               <span className="text-[10px] text-slate-400 font-mono">
-                Seção {idx + 1} de {sections.length}
+                Matriz PAS 2026 • Seção {idx + 1} de {sections.length}
               </span>
             </div>
             <div className="p-3 bg-white">
@@ -173,20 +201,29 @@ export const TecnicoResultSection: React.FC<TecnicoResultSectionProps> = ({
       </div>
 
       {/* BOTÃO FINAL DE EXPORTAÇÃO */}
-      <div className="pt-4 flex justify-between items-center border-t border-slate-100">
+      <div className="pt-4 flex flex-col md:flex-row justify-between items-center gap-4 border-t border-slate-100">
         <button
           onClick={onReset}
           className="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-600 hover:bg-slate-50 font-semibold text-sm transition"
         >
           Criar Outro Plano
         </button>
-        <button
-          onClick={handleDownloadPDF}
-          disabled={isExporting}
-          className="px-8 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-lg shadow-emerald-600/25 transition flex items-center space-x-2"
-        >
-          <span>📥 Baixar PDF Institucional Oficial</span>
-        </button>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={handleDownloadDocx}
+            disabled={isExportingDocx}
+            className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg transition flex items-center space-x-2 text-sm"
+          >
+            <span>📝 Baixar em Word (.docx)</span>
+          </button>
+          <button
+            onClick={handleDownloadPDF}
+            disabled={isExportingPDF}
+            className="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-lg shadow-emerald-600/25 transition flex items-center space-x-2 text-sm"
+          >
+            <span>📄 Baixar PDF Institucional (Paisagem)</span>
+          </button>
+        </div>
       </div>
     </div>
   );
