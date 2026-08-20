@@ -192,12 +192,12 @@ function createTecnicoHtmlContent(context: TecnicoContext, conteudo: string): st
       }
 
       return `
-      <tr>
+      <tr style="page-break-inside: avoid; break-inside: avoid;">
         <td colspan="2" style="background: #d9e2f3; padding: 7px 10px; border: 1px solid #475569; font-weight: bold; font-size: 11px; color: #0f172a; text-transform: uppercase;">
           ${title}
         </td>
       </tr>
-      <tr>
+      <tr style="page-break-inside: avoid; break-inside: avoid;">
         <td colspan="2" style="padding: 9px 12px; border: 1px solid #475569; font-size: 11px; color: #1e293b; line-height: 1.6; white-space: pre-wrap; margin: 0; background: #ffffff;">${bodyText || "-"}</td>
       </tr>
     `;
@@ -221,10 +221,10 @@ function createTecnicoHtmlContent(context: TecnicoContext, conteudo: string): st
       <div style="width: 1060px; margin: 0 auto; padding: 10px;">
         
         <!-- 1. CABEÇALHO INSTITUCIONAL GOVERNAMENTAL COM BRASÃO -->
-        <table style="width: 100%; border-collapse: collapse; border: 1px solid #334155; margin-bottom: 12px;">
+        <table style="width: 100%; border-collapse: collapse; border: 1px solid #334155; margin-bottom: 12px; page-break-inside: avoid; break-inside: avoid;">
           <tr>
             <td style="width: 12%; text-align: center; padding: 8px; background: #fafafa; vertical-align: middle;">
-              <img src="${IMAGE_BRASAO_GOVERNO_B64}" style="width: 52px; height: auto;" alt="Brasão SP" />
+              <img src="${IMAGE_BRASAO_GOVERNO_B64}" style="width: 48px; height: auto;" alt="Brasão SP" />
             </td>
             <td style="width: 88%; text-align: center; padding: 12px; background: #fafafa; vertical-align: middle;">
               <div style="font-size: 14px; font-weight: bold; color: #000; text-transform: uppercase; letter-spacing: 0.5px;">GOVERNO DO ESTADO DE SÃO PAULO</div>
@@ -239,7 +239,7 @@ function createTecnicoHtmlContent(context: TecnicoContext, conteudo: string): st
         <!-- 2. ESTRUTURA EM GRADE ÚNICA (MATRIZ PAS 2026) -->
         <table style="width: 100%; border-collapse: collapse; border: 1px solid #334155; font-size: 11px;">
           <!-- Linha Título do Plano -->
-          <tr>
+          <tr style="page-break-inside: avoid; break-inside: avoid;">
             <td style="width: 55%; background: #d5dce4; padding: 8px 12px; border: 1px solid #334155; font-weight: bold; font-size: 12px; color: #000;">
               PLANO DE AULA SEMANAL — ${bimestreLabel} BIM/2026
             </td>
@@ -248,13 +248,13 @@ function createTecnicoHtmlContent(context: TecnicoContext, conteudo: string): st
             </td>
           </tr>
           <!-- Linha Professor -->
-          <tr>
+          <tr style="page-break-inside: avoid; break-inside: avoid;">
             <td colspan="2" style="padding: 7px 12px; border: 1px solid #334155; background: #ffffff;">
               <strong>Nome do(a) professor(a):</strong> ${context.nomeProf || "-"}
             </td>
           </tr>
           <!-- Linha Disciplina & Turma -->
-          <tr>
+          <tr style="page-break-inside: avoid; break-inside: avoid;">
             <td style="padding: 7px 12px; border: 1px solid #334155; background: #ffffff;">
               <strong>DISCIPLINA / COMPONENTE:</strong> ${context.disciplina || "-"}
             </td>
@@ -267,11 +267,11 @@ function createTecnicoHtmlContent(context: TecnicoContext, conteudo: string): st
           ${matrixRowsHtml}
         </table>
 
-        <!-- 3. RODAPÉ INSTITUCIONAL COM LOGO DA ESCOLA E ASSINATURAS -->
-        <table style="width: 100%; border-collapse: collapse; border: 1px solid #334155; margin-top: 14px; font-size: 10px;">
+        <!-- 3. RODAPÉ INSTITUCIONAL COM LOGO DA ESCOLA E ASSINATURAS (BLOCO INDIVISÍVEL) -->
+        <table style="width: 100%; border-collapse: collapse; border: 1px solid #334155; margin-top: 14px; font-size: 10px; page-break-inside: avoid; break-inside: avoid;">
           <tr>
             <td style="width: 25%; text-align: center; padding: 10px; background: #fafafa; border: 1px solid #334155; vertical-align: middle;">
-              <img src="${IMAGE_LOGO_ESCOLA_B64}" style="width: 110px; height: auto;" alt="Logo Escola" />
+              <img src="${IMAGE_LOGO_ESCOLA_B64}" style="width: 95px; height: auto;" alt="Logo Escola" />
             </td>
             <td style="width: 37.5%; text-align: center; padding: 15px 10px; border: 1px solid #334155; vertical-align: bottom;">
               <div style="border-top: 1px solid #555; width: 80%; margin: 0 auto 5px auto;"></div>

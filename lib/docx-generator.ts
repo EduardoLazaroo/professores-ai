@@ -80,10 +80,11 @@ export async function generateTecnicoDocx(
     borders: tableBorders,
     rows: [
       new TableRow({
+        cantSplit: true,
         children: [
           // Célula 1: Brasão Oficial do Governo de SP (image2.jpg)
           new TableCell({
-            width: { size: 15, type: WidthType.PERCENTAGE },
+            width: { size: 12, type: WidthType.PERCENTAGE },
             shading: { fill: "FAFAFA", type: ShadingType.CLEAR },
             children: [
               new Paragraph({
@@ -92,8 +93,8 @@ export async function generateTecnicoDocx(
                   new ImageRun({
                     data: getBrasaoGovernoBuffer(),
                     transformation: {
-                      width: 52,
-                      height: 58,
+                      width: 48,
+                      height: 53,
                     },
                     type: "jpg",
                   }),
@@ -103,7 +104,7 @@ export async function generateTecnicoDocx(
           }),
           // Célula 2: Texto do Cabeçalho Institucional
           new TableCell({
-            width: { size: 85, type: WidthType.PERCENTAGE },
+            width: { size: 88, type: WidthType.PERCENTAGE },
             shading: { fill: "FAFAFA", type: ShadingType.CLEAR },
             children: [
               new Paragraph({
@@ -177,6 +178,7 @@ export async function generateTecnicoDocx(
   // Linha 1: Título do Plano e Semana/Período (Preenchimento oficial: D5DCE4)
   rows.push(
     new TableRow({
+      cantSplit: true,
       children: [
         new TableCell({
           width: { size: 55, type: WidthType.PERCENTAGE },
@@ -219,6 +221,7 @@ export async function generateTecnicoDocx(
   // Linha 2: Professor(a)
   rows.push(
     new TableRow({
+      cantSplit: true,
       children: [
         new TableCell({
           columnSpan: 2,
@@ -247,6 +250,7 @@ export async function generateTecnicoDocx(
   // Linha 3: Disciplina e Ano/Série + Aulas/Lab
   rows.push(
     new TableRow({
+      cantSplit: true,
       children: [
         new TableCell({
           width: { size: 50, type: WidthType.PERCENTAGE },
@@ -313,6 +317,7 @@ export async function generateTecnicoDocx(
 
     rows.push(
       new TableRow({
+        cantSplit: true,
         children: [
           new TableCell({
             columnSpan: 2,
@@ -356,6 +361,7 @@ export async function generateTecnicoDocx(
 
     rows.push(
       new TableRow({
+        cantSplit: true,
         children: [
           new TableCell({
             columnSpan: 2,
@@ -372,12 +378,13 @@ export async function generateTecnicoDocx(
     rows: rows,
   });
 
-  // --- TABELA 3: RODAPÉ COM LOGO INSTITUCIONAL DA ESCOLA (image1.png) E ASSINATURAS ---
+  // --- TABELA 3: RODAPÉ COM LOGO INSTITUCIONAL DA ESCOLA (image1.png) E ASSINATURAS (COM CANTSPLIT PAR EVITAR QUEBRAS ACIDENTAIS) ---
   const footerSignatureTable = new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
     borders: tableBorders,
     rows: [
       new TableRow({
+        cantSplit: true,
         children: [
           // Célula 1: Logo da Escola (image1.png)
           new TableCell({
@@ -390,8 +397,8 @@ export async function generateTecnicoDocx(
                   new ImageRun({
                     data: getLogoEscolaBuffer(),
                     transformation: {
-                      width: 110,
-                      height: 85,
+                      width: 95,
+                      height: 72,
                     },
                     type: "png",
                   }),
@@ -405,7 +412,7 @@ export async function generateTecnicoDocx(
             children: [
               new Paragraph({
                 alignment: AlignmentType.CENTER,
-                spacing: { before: 200, after: 40 },
+                spacing: { before: 140, after: 40 },
                 children: [
                   new TextRun({
                     text: "_______________________________________",
@@ -436,7 +443,7 @@ export async function generateTecnicoDocx(
             children: [
               new Paragraph({
                 alignment: AlignmentType.CENTER,
-                spacing: { before: 200, after: 40 },
+                spacing: { before: 140, after: 40 },
                 children: [
                   new TextRun({
                     text: "_______________________________________",
