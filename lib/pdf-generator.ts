@@ -5,6 +5,7 @@
 
 import { OcorrenciaContext, TecnicoContext } from "./types";
 import { formatExportFilename } from "./filename-utils";
+import { IMAGE_BRASAO_GOVERNO_B64, IMAGE_LOGO_ESCOLA_B64 } from "./templateImages";
 
 /**
  * Gera um PDF do Planejamento Técnico usando jsPDF + html2canvas em formato Paisagem (Landscape)
@@ -192,7 +193,7 @@ function createTecnicoHtmlContent(context: TecnicoContext, conteudo: string): st
 
       return `
       <tr>
-        <td colspan="2" style="background: #e2e8f0; padding: 7px 10px; border: 1px solid #475569; font-weight: bold; font-size: 11px; color: #0f172a; text-transform: uppercase;">
+        <td colspan="2" style="background: #d9e2f3; padding: 7px 10px; border: 1px solid #475569; font-weight: bold; font-size: 11px; color: #0f172a; text-transform: uppercase;">
           ${title}
         </td>
       </tr>
@@ -219,10 +220,13 @@ function createTecnicoHtmlContent(context: TecnicoContext, conteudo: string): st
     <body style="background: white; color: #0f172a; margin: 0; padding: 0; font-family: Arial, sans-serif;">
       <div style="width: 1060px; margin: 0 auto; padding: 10px;">
         
-        <!-- 1. CABEÇALHO INSTITUCIONAL GOVERNAMENTAL -->
+        <!-- 1. CABEÇALHO INSTITUCIONAL GOVERNAMENTAL COM BRASÃO -->
         <table style="width: 100%; border-collapse: collapse; border: 1px solid #334155; margin-bottom: 12px;">
           <tr>
-            <td style="text-align: center; padding: 12px; background: #fafafa;">
+            <td style="width: 12%; text-align: center; padding: 8px; background: #fafafa; vertical-align: middle;">
+              <img src="${IMAGE_BRASAO_GOVERNO_B64}" style="width: 52px; height: auto;" alt="Brasão SP" />
+            </td>
+            <td style="width: 88%; text-align: center; padding: 12px; background: #fafafa; vertical-align: middle;">
               <div style="font-size: 14px; font-weight: bold; color: #000; text-transform: uppercase; letter-spacing: 0.5px;">GOVERNO DO ESTADO DE SÃO PAULO</div>
               <div style="font-size: 13px; font-weight: bold; color: #000; text-transform: uppercase; letter-spacing: 0.5px;">SECRETARIA DE ESTADO DA EDUCAÇÃO</div>
               <div style="font-size: 12px; color: #333; margin-top: 1px;">UNIDADE REGIONAL DE ENSINO DE MARÍLIA</div>
@@ -236,10 +240,10 @@ function createTecnicoHtmlContent(context: TecnicoContext, conteudo: string): st
         <table style="width: 100%; border-collapse: collapse; border: 1px solid #334155; font-size: 11px;">
           <!-- Linha Título do Plano -->
           <tr>
-            <td style="width: 55%; background: #e0f2fe; padding: 8px 12px; border: 1px solid #334155; font-weight: bold; font-size: 12px; color: #0369a1;">
+            <td style="width: 55%; background: #d5dce4; padding: 8px 12px; border: 1px solid #334155; font-weight: bold; font-size: 12px; color: #000;">
               PLANO DE AULA SEMANAL — ${bimestreLabel} BIM/2026
             </td>
-            <td style="width: 45%; background: #e0f2fe; padding: 8px 12px; border: 1px solid #334155; font-weight: bold; font-size: 11px; color: #0f172a;">
+            <td style="width: 45%; background: #d5dce4; padding: 8px 12px; border: 1px solid #334155; font-weight: bold; font-size: 11px; color: #0f172a;">
               SEMANA ESCOLAR: ${context.semana || "-"} | PERÍODO: ${context.dataInicio || "__/__"} a ${context.dataFim || "__/__"}
             </td>
           </tr>
@@ -263,10 +267,24 @@ function createTecnicoHtmlContent(context: TecnicoContext, conteudo: string): st
           ${matrixRowsHtml}
         </table>
 
-        <!-- 3. RODAPÉ INSTITUCIONAL LIMPO -->
-        <div style="margin-top: 15px; border-top: 1px solid #cbd5e1; padding-top: 6px; text-align: center; font-size: 9px; color: #64748b;">
-          EE MONSENHOR BICUDO • Ensino Técnico em Desenvolvimento de Sistemas • Modelo Oficial PAS_MODELO_2026
-        </div>
+        <!-- 3. RODAPÉ INSTITUCIONAL COM LOGO DA ESCOLA E ASSINATURAS -->
+        <table style="width: 100%; border-collapse: collapse; border: 1px solid #334155; margin-top: 14px; font-size: 10px;">
+          <tr>
+            <td style="width: 25%; text-align: center; padding: 10px; background: #fafafa; border: 1px solid #334155; vertical-align: middle;">
+              <img src="${IMAGE_LOGO_ESCOLA_B64}" style="width: 110px; height: auto;" alt="Logo Escola" />
+            </td>
+            <td style="width: 37.5%; text-align: center; padding: 15px 10px; border: 1px solid #334155; vertical-align: bottom;">
+              <div style="border-top: 1px solid #555; width: 80%; margin: 0 auto 5px auto;"></div>
+              <strong>Assinatura do(a) Professor(a)</strong><br />
+              <span style="font-size: 9px; color: #555;">${context.nomeProf || ""}</span>
+            </td>
+            <td style="width: 37.5%; text-align: center; padding: 15px 10px; border: 1px solid #334155; vertical-align: bottom;">
+              <div style="border-top: 1px solid #555; width: 80%; margin: 0 auto 5px auto;"></div>
+              <strong>Coordenação Pedagógica / Direção</strong><br />
+              <span style="font-size: 9px; color: #555;">EE Monsenhor Bicudo</span>
+            </td>
+          </tr>
+        </table>
 
       </div>
     </body>

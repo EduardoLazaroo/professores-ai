@@ -16,9 +16,11 @@ import {
   PageOrientation,
   BorderStyle,
   ShadingType,
+  ImageRun,
 } from "docx";
 import { TecnicoContext } from "./types";
 import { formatExportFilename } from "./filename-utils";
+import { getBrasaoGovernoBuffer, getLogoEscolaBuffer } from "./templateImages";
 
 /**
  * Gera e realiza o download de um arquivo .docx formatado identicamente ao modelo oficial PAS_MODELO_2026
@@ -27,7 +29,7 @@ export async function generateTecnicoDocx(
   context: TecnicoContext,
   conteudo: string
 ): Promise<void> {
-  // Extrair seções entre parênteses ex: (APRENDIZAGENS ESSENCIAIS)
+  // Extrair seções entre parênteses ex: (APRENDIZAGENS ESSENCIAIS (AE))
   const sections: { title: string; body: string }[] = [];
   const regex = /\(([^)]+)\)\s*([\s\S]*?)(?=\([^)]+\)|$)/g;
   let match;
@@ -72,15 +74,36 @@ export async function generateTecnicoDocx(
     insideVertical: borderStyle,
   };
 
-  // --- TABELA 1: CABEÇALHO INSTITUCIONAL (GOVERNO DO ESTADO DE SÃO PAULO) ---
+  // --- TABELA 1: CABEÇALHO INSTITUCIONAL COM LOGO DO GOVERNO (BRASÃO) ---
   const headerTable = new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
     borders: tableBorders,
     rows: [
       new TableRow({
         children: [
+          // Célula 1: Brasão Oficial do Governo de SP (image2.jpg)
           new TableCell({
-            width: { size: 100, type: WidthType.PERCENTAGE },
+            width: { size: 15, type: WidthType.PERCENTAGE },
+            shading: { fill: "FAFAFA", type: ShadingType.CLEAR },
+            children: [
+              new Paragraph({
+                alignment: AlignmentType.CENTER,
+                children: [
+                  new ImageRun({
+                    data: getBrasaoGovernoBuffer(),
+                    transformation: {
+                      width: 52,
+                      height: 58,
+                    },
+                    type: "jpg",
+                  }),
+                ],
+              }),
+            ],
+          }),
+          // Célula 2: Texto do Cabeçalho Institucional
+          new TableCell({
+            width: { size: 85, type: WidthType.PERCENTAGE },
             shading: { fill: "FAFAFA", type: ShadingType.CLEAR },
             children: [
               new Paragraph({
@@ -144,7 +167,7 @@ export async function generateTecnicoDocx(
     ],
   });
 
-  // --- TABELA 2: MATRIZ DE PLANO DE AULA SEMANAL (ESTRUTURA OFICIAL) ---
+  // --- TABELA 2: MATRIZ DE PLANO DE AULA SEMANAL ---
   const rows: TableRow[] = [];
   const bimestreLabel = (context.bimestre || "1º").toUpperCase();
   const labText = context.usoLaboratorio
@@ -349,7 +372,101 @@ export async function generateTecnicoDocx(
     rows: rows,
   });
 
-  // --- DOCUMENTO COMPLETO EM PAISAGEM (COM AS MESMAS MARGENS E SEM FOOTER EXTRA, IGUAL AO MODELO) ---
+  // --- TABELA 3: RODAPÉ COM LOGO INSTITUCIONAL DA ESCOLA (image1.png) E ASSINATURAS ---
+  const footerSignatureTable = new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    borders: tableBorders,
+    rows: [
+      new TableRow({
+        children: [
+          // Célula 1: Logo da Escola (image1.png)
+          new TableCell({
+            width: { size: 25, type: WidthType.PERCENTAGE },
+            shading: { fill: "FAFAFA", type: ShadingType.CLEAR },
+            children: [
+              new Paragraph({
+                alignment: AlignmentType.CENTER,
+                children: [
+                  new ImageRun({
+                    data: getLogoEscolaBuffer(),
+                    transformation: {
+                      width: 110,
+                      height: 85,
+                    },
+                    type: "png",
+                  }),
+                ],
+              }),
+            ],
+          }),
+          // Célula 2: Assinatura do Professor
+          new TableCell({
+            width: { size: 37.5, type: WidthType.PERCENTAGE },
+            children: [
+              new Paragraph({
+                alignment: AlignmentType.CENTER,
+                spacing: { before: 200, after: 40 },
+                children: [
+                  new TextRun({
+                    text: "_______________________________________",
+                    bold: true,
+                    size: 16,
+                    font: "Arial",
+                    color: "555555",
+                  }),
+                ],
+              }),
+              new Paragraph({
+                alignment: AlignmentType.CENTER,
+                children: [
+                  new TextRun({
+                    text: `Assinatura do(a) Professor(a)\n${context.nomeProf || ""}`,
+                    size: 16,
+                    font: "Arial",
+                    bold: true,
+                    color: "333333",
+                  }),
+                ],
+              }),
+            ],
+          }),
+          // Célula 3: Assinatura da Coordenação
+          new TableCell({
+            width: { size: 37.5, type: WidthType.PERCENTAGE },
+            children: [
+              new Paragraph({
+                alignment: AlignmentType.CENTER,
+                spacing: { before: 200, after: 40 },
+                children: [
+                  new TextRun({
+                    text: "_______________________________________",
+                    bold: true,
+                    size: 16,
+                    font: "Arial",
+                    color: "555555",
+                  }),
+                ],
+              }),
+              new Paragraph({
+                alignment: AlignmentType.CENTER,
+                children: [
+                  new TextRun({
+                    text: "Coordenação Pedagógica / Direção\nEE Monsenhor Bicudo",
+                    size: 16,
+                    font: "Arial",
+                    bold: true,
+                    color: "333333",
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      }),
+    ],
+  });
+
+  // --- DOCUMENTO COMPLETO EM PAISAGEM ---
   const doc = new Document({
     sections: [
       {
@@ -374,6 +491,8 @@ export async function generateTecnicoDocx(
           headerTable,
           new Paragraph({ spacing: { after: 120 }, children: [] }),
           matrixTable,
+          new Paragraph({ spacing: { after: 140 }, children: [] }),
+          footerSignatureTable,
         ],
       },
     ],
