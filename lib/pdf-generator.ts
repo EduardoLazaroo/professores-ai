@@ -220,18 +220,21 @@ function createTecnicoHtmlContent(context: TecnicoContext, conteudo: string): st
     <body style="background: white; color: #0f172a; margin: 0; padding: 0; font-family: Arial, sans-serif;">
       <div style="width: 1060px; margin: 0 auto; padding: 10px;">
         
-        <!-- 1. CABEÇALHO INSTITUCIONAL GOVERNAMENTAL COM BRASÃO -->
+        <!-- 1. CABEÇALHO INSTITUCIONAL GOVERNAMENTAL COM AS DUAS IMAGENS NO TOPO -->
         <table style="width: 100%; border-collapse: collapse; border: 1px solid #334155; margin-bottom: 12px; page-break-inside: avoid; break-inside: avoid;">
           <tr>
             <td style="width: 12%; text-align: center; padding: 8px; background: #fafafa; vertical-align: middle;">
               <img src="${IMAGE_BRASAO_GOVERNO_B64}" style="width: 48px; height: auto;" alt="Brasão SP" />
             </td>
-            <td style="width: 88%; text-align: center; padding: 12px; background: #fafafa; vertical-align: middle;">
+            <td style="width: 76%; text-align: center; padding: 12px; background: #fafafa; vertical-align: middle;">
               <div style="font-size: 14px; font-weight: bold; color: #000; text-transform: uppercase; letter-spacing: 0.5px;">GOVERNO DO ESTADO DE SÃO PAULO</div>
               <div style="font-size: 13px; font-weight: bold; color: #000; text-transform: uppercase; letter-spacing: 0.5px;">SECRETARIA DE ESTADO DA EDUCAÇÃO</div>
               <div style="font-size: 12px; color: #333; margin-top: 1px;">UNIDADE REGIONAL DE ENSINO DE MARÍLIA</div>
               <div style="font-size: 16px; font-weight: bold; color: #1e3a8a; margin-top: 3px;">EE "Monsenhor Bicudo"</div>
               <div style="font-size: 10px; color: #555; margin-top: 2px;">Av. Rio Branco, 803 - Fone (14) 3433-5163 - 17502-000 - Marília - SP</div>
+            </td>
+            <td style="width: 12%; text-align: center; padding: 8px; background: #fafafa; vertical-align: middle;">
+              <img src="${IMAGE_LOGO_ESCOLA_B64}" style="width: 75px; height: auto;" alt="Logo Escola" />
             </td>
           </tr>
         </table>
@@ -267,24 +270,10 @@ function createTecnicoHtmlContent(context: TecnicoContext, conteudo: string): st
           ${matrixRowsHtml}
         </table>
 
-        <!-- 3. RODAPÉ INSTITUCIONAL COM LOGO DA ESCOLA E ASSINATURAS (BLOCO INDIVISÍVEL) -->
-        <table style="width: 100%; border-collapse: collapse; border: 1px solid #334155; margin-top: 14px; font-size: 10px; page-break-inside: avoid; break-inside: avoid;">
-          <tr>
-            <td style="width: 25%; text-align: center; padding: 10px; background: #fafafa; border: 1px solid #334155; vertical-align: middle;">
-              <img src="${IMAGE_LOGO_ESCOLA_B64}" style="width: 95px; height: auto;" alt="Logo Escola" />
-            </td>
-            <td style="width: 37.5%; text-align: center; padding: 15px 10px; border: 1px solid #334155; vertical-align: bottom;">
-              <div style="border-top: 1px solid #555; width: 80%; margin: 0 auto 5px auto;"></div>
-              <strong>Assinatura do(a) Professor(a)</strong><br />
-              <span style="font-size: 9px; color: #555;">${context.nomeProf || ""}</span>
-            </td>
-            <td style="width: 37.5%; text-align: center; padding: 15px 10px; border: 1px solid #334155; vertical-align: bottom;">
-              <div style="border-top: 1px solid #555; width: 80%; margin: 0 auto 5px auto;"></div>
-              <strong>Coordenação Pedagógica / Direção</strong><br />
-              <span style="font-size: 9px; color: #555;">EE Monsenhor Bicudo</span>
-            </td>
-          </tr>
-        </table>
+        <!-- 3. RODAPÉ INSTITUCIONAL DISCRETO -->
+        <div style="margin-top: 15px; border-top: 1px solid #cbd5e1; padding-top: 6px; text-align: center; font-size: 9px; color: #64748b;">
+          EE MONSENHOR BICUDO • Ensino Técnico em Desenvolvimento de Sistemas • Modelo Oficial PAS_MODELO_2026
+        </div>
 
       </div>
     </body>

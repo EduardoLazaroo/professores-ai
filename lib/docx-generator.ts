@@ -1,6 +1,6 @@
 /**
  * Gerador de documentos Word (.docx) para o Plano de Aula Semanal do Eixo Técnico
- * Segue 100% a estrutura, margens, cores (D9E2F3) e layout do modelo oficial PAS_MODELO_2026 (EE Monsenhor Bicudo)
+ * Segue 100% a estrutura, margens, cores (D9E2F3) e cabeçalho oficial do modelo PAS_MODELO_2026 (EE Monsenhor Bicudo)
  */
 
 import {
@@ -74,7 +74,7 @@ export async function generateTecnicoDocx(
     insideVertical: borderStyle,
   };
 
-  // --- TABELA 1: CABEÇALHO INSTITUCIONAL COM LOGO DO GOVERNO (BRASÃO) ---
+  // --- TABELA 1: CABEÇALHO INSTITUCIONAL COM AS DUAS IMAGENS NO TOPO ---
   const headerTable = new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
     borders: tableBorders,
@@ -82,9 +82,9 @@ export async function generateTecnicoDocx(
       new TableRow({
         cantSplit: true,
         children: [
-          // Célula 1: Brasão Oficial do Governo de SP (image2.jpg)
+          // Célula 1 (Esquerda): Brasão Oficial do Governo de SP (image2.jpg)
           new TableCell({
-            width: { size: 12, type: WidthType.PERCENTAGE },
+            width: { size: 15, type: WidthType.PERCENTAGE },
             shading: { fill: "FAFAFA", type: ShadingType.CLEAR },
             children: [
               new Paragraph({
@@ -102,9 +102,9 @@ export async function generateTecnicoDocx(
               }),
             ],
           }),
-          // Célula 2: Texto do Cabeçalho Institucional
+          // Célula 2 (Centro): Texto do Cabeçalho Governamental
           new TableCell({
-            width: { size: 88, type: WidthType.PERCENTAGE },
+            width: { size: 70, type: WidthType.PERCENTAGE },
             shading: { fill: "FAFAFA", type: ShadingType.CLEAR },
             children: [
               new Paragraph({
@@ -158,6 +158,26 @@ export async function generateTecnicoDocx(
                     size: 16,
                     font: "Arial",
                     color: "555555",
+                  }),
+                ],
+              }),
+            ],
+          }),
+          // Célula 3 (Direita): Logo Oficial da EE Monsenhor Bicudo (image1.png)
+          new TableCell({
+            width: { size: 15, type: WidthType.PERCENTAGE },
+            shading: { fill: "FAFAFA", type: ShadingType.CLEAR },
+            children: [
+              new Paragraph({
+                alignment: AlignmentType.CENTER,
+                children: [
+                  new ImageRun({
+                    data: getLogoEscolaBuffer(),
+                    transformation: {
+                      width: 75,
+                      height: 58,
+                    },
+                    type: "png",
                   }),
                 ],
               }),
@@ -378,101 +398,6 @@ export async function generateTecnicoDocx(
     rows: rows,
   });
 
-  // --- TABELA 3: RODAPÉ COM LOGO INSTITUCIONAL DA ESCOLA (image1.png) E ASSINATURAS (COM CANTSPLIT PAR EVITAR QUEBRAS ACIDENTAIS) ---
-  const footerSignatureTable = new Table({
-    width: { size: 100, type: WidthType.PERCENTAGE },
-    borders: tableBorders,
-    rows: [
-      new TableRow({
-        cantSplit: true,
-        children: [
-          // Célula 1: Logo da Escola (image1.png)
-          new TableCell({
-            width: { size: 25, type: WidthType.PERCENTAGE },
-            shading: { fill: "FAFAFA", type: ShadingType.CLEAR },
-            children: [
-              new Paragraph({
-                alignment: AlignmentType.CENTER,
-                children: [
-                  new ImageRun({
-                    data: getLogoEscolaBuffer(),
-                    transformation: {
-                      width: 95,
-                      height: 72,
-                    },
-                    type: "png",
-                  }),
-                ],
-              }),
-            ],
-          }),
-          // Célula 2: Assinatura do Professor
-          new TableCell({
-            width: { size: 37.5, type: WidthType.PERCENTAGE },
-            children: [
-              new Paragraph({
-                alignment: AlignmentType.CENTER,
-                spacing: { before: 140, after: 40 },
-                children: [
-                  new TextRun({
-                    text: "_______________________________________",
-                    bold: true,
-                    size: 16,
-                    font: "Arial",
-                    color: "555555",
-                  }),
-                ],
-              }),
-              new Paragraph({
-                alignment: AlignmentType.CENTER,
-                children: [
-                  new TextRun({
-                    text: `Assinatura do(a) Professor(a)\n${context.nomeProf || ""}`,
-                    size: 16,
-                    font: "Arial",
-                    bold: true,
-                    color: "333333",
-                  }),
-                ],
-              }),
-            ],
-          }),
-          // Célula 3: Assinatura da Coordenação
-          new TableCell({
-            width: { size: 37.5, type: WidthType.PERCENTAGE },
-            children: [
-              new Paragraph({
-                alignment: AlignmentType.CENTER,
-                spacing: { before: 140, after: 40 },
-                children: [
-                  new TextRun({
-                    text: "_______________________________________",
-                    bold: true,
-                    size: 16,
-                    font: "Arial",
-                    color: "555555",
-                  }),
-                ],
-              }),
-              new Paragraph({
-                alignment: AlignmentType.CENTER,
-                children: [
-                  new TextRun({
-                    text: "Coordenação Pedagógica / Direção\nEE Monsenhor Bicudo",
-                    size: 16,
-                    font: "Arial",
-                    bold: true,
-                    color: "333333",
-                  }),
-                ],
-              }),
-            ],
-          }),
-        ],
-      }),
-    ],
-  });
-
   // --- DOCUMENTO COMPLETO EM PAISAGEM ---
   const doc = new Document({
     sections: [
@@ -498,8 +423,6 @@ export async function generateTecnicoDocx(
           headerTable,
           new Paragraph({ spacing: { after: 120 }, children: [] }),
           matrixTable,
-          new Paragraph({ spacing: { after: 140 }, children: [] }),
-          footerSignatureTable,
         ],
       },
     ],
