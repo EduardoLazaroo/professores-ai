@@ -1,8 +1,15 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { TecnicoContext } from "@/lib/types";
 import { parseScopeText, ParsedScopeResult } from "@/lib/scopeParser";
+import {
+  getDisciplinasByTurma,
+  getSemanasDisponiveis,
+  getWeekDetails,
+  getCurriculumData,
+  CurriculumWeekDetails,
+} from "@/lib/curriculumLoader";
 
 interface TecnicoFormSectionProps {
   context: TecnicoContext;
@@ -13,24 +20,6 @@ interface TecnicoFormSectionProps {
   isLoading: boolean;
 }
 
-const DISCIPLINAS_2_TECNICO = [
-  "Lógica de Programação",
-  "Front-End I (HTML, CSS e JS)",
-  "Banco de Dados I (SQL)",
-  "Versionamento e Git",
-  "Modelagem e Análise de Sistemas",
-  "Outra Disciplina",
-];
-
-const DISCIPLINAS_3_TECNICO = [
-  "Desenvolvimento Back-End (APIs & Node.js)",
-  "Front-End II (React & Next.js)",
-  "Banco de Dados II (NoSQL e ORM)",
-  "Inteligência Artificial & Machine Learning",
-  "Projetos de TI & Carreiras em EPT",
-  "Outra Disciplina",
-];
-
 export const TecnicoFormSection: React.FC<TecnicoFormSectionProps> = ({
   context,
   setContext,
@@ -40,26 +29,54 @@ export const TecnicoFormSection: React.FC<TecnicoFormSectionProps> = ({
   isLoading,
 }) => {
   const [customDisciplina, setCustomDisciplina] = useState("");
-  const [parsedPreview, setParsedPreview] = useState<ParsedScopeResult | null>(
-    null
+  const [parsedPreview, setParsedPreview] = useState<ParsedScopeResult | null>(null);
+  const [autoLoadedInfo, setAutoLoadedInfo] = useState<string | null>(null);
+
+  // Lista de disciplinas dinâmicas conforme a turma
+  const disciplinasDisponiveis = getDisciplinasByTurma(context.turma);
+
+  // Semanas disponíveis conforme a disciplina selecionada
+  const semanasDisponiveis = getSemanasDisponiveis(context.turma, context.disciplina);
+
+  // Detalhes da semana selecionada no JSON
+  const weekDetails: CurriculumWeekDetails | null = getWeekDetails(
+    context.turma,
+    context.disciplina,
+    context.semana
   );
 
-  // Lista de disciplinas conforme a turma escolhida
-  const disciplinasDisponiveis =
-    context.turma === "3º Técnico"
-      ? DISCIPLINAS_3_TECNICO
-      : DISCIPLINAS_2_TECNICO;
+  // Função para aplicar os dados automáticos do JSON no formulário
+  const handleLoadCurriculumData = useCallback(
+    (details: CurriculumWeekDetails) => {
+      setContext((prev) => ({
+        ...prev,
+        bimestre: details.bimestreFormatted,
+        qtdAulas: details.qtdAulas,
+        usoLaboratorio: details.usoLaboratorio,
+      }));
 
-  // Atualizar preview do parser sempre que o escopo mudar
+      setContent(details.formattedScope);
+
+      setAutoLoadedInfo(
+        `Carregado automaticamente: ${details.lessons.length} aulas da ${context.semana} (${context.disciplina})`
+      );
+    },
+    [context.semana, context.disciplina, setContext, setContent]
+  );
+
+  // Ao trocar de turma, reseta disciplina para a primeira da nova lista se não existir nela
+  useEffect(() => {
+    const disponiveis = getDisciplinasByTurma(context.turma);
+    if (!disponiveis.includes(context.disciplina) && disponiveis.length > 0) {
+      setContext((prev) => ({ ...prev, disciplina: disponiveis[0] }));
+    }
+  }, [context.turma, context.disciplina, setContext]);
+
+  // Atualizar preview do parser de texto sempre que o escopo mudar
   useEffect(() => {
     if (content.trim().length > 10) {
       const parsed = parseScopeText(content);
       setParsedPreview(parsed);
-      
-      // Auto-preencher disciplina se for detectada e o usuário ainda não tiver escolhido uma customizada
-      if (parsed.disciplina && (!context.disciplina || context.disciplina === "Lógica de Programação")) {
-        setContext((prev) => ({ ...prev, disciplina: parsed.disciplina }));
-      }
     } else {
       setParsedPreview(null);
     }
@@ -69,20 +86,7 @@ export const TecnicoFormSection: React.FC<TecnicoFormSectionProps> = ({
     field: keyof TecnicoContext,
     value: string | number | boolean
   ) => {
-    setContext((prev) => {
-      const updated = { ...prev, [field]: value };
-      // Se mudou a turma, reseta disciplina para a primeira da nova lista se não estiver nela
-      if (field === "turma") {
-        const novaLista =
-          value === "3º Técnico"
-            ? DISCIPLINAS_3_TECNICO
-            : DISCIPLINAS_2_TECNICO;
-        if (!novaLista.includes(prev.disciplina)) {
-          updated.disciplina = novaLista[0];
-        }
-      }
-      return updated;
-    });
+    setContext((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleDisciplinaSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -96,18 +100,27 @@ export const TecnicoFormSection: React.FC<TecnicoFormSectionProps> = ({
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-8 bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-slate-100">
+      {/* CABEÇALHO */}
       <div className="border-b border-slate-100 pb-4">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xl">
-            💻
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xl">
+              💻
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-slate-800">
+                Educação Profissional Técnico de Desenvolvimento de Sistemas
+              </h2>
+              <p className="text-sm text-slate-500">
+                Plano de Aula Semanal integrado à Matriz Curricular Oficial (JSON / Excel).
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-2xl font-bold text-slate-800">
-              Educação Profissional Técnico de Desenvolvimento de Sistemas
-            </h2>
-            <p className="text-sm text-slate-500">
-              Plano de Aula Semanal para a Educação Profissional Técnico de Desenvolvimento de Sistemas.
-            </p>
+
+          <div className="flex items-center space-x-2">
+            <span className="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+              ✓ Matriz {context.turma} Carregada ({getCurriculumData(context.turma).length} Aulas)
+            </span>
           </div>
         </div>
       </div>
@@ -190,6 +203,28 @@ export const TecnicoFormSection: React.FC<TecnicoFormSectionProps> = ({
             )}
           </div>
 
+          {/* Identificação da Semana */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Identificação da Semana <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={context.semana}
+              onChange={(e) => handleChange("semana", e.target.value)}
+              className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-slate-800"
+            >
+              {semanasDisponiveis.map((num) => {
+                const padNum = String(num).padStart(2, "0");
+                const semVal = `Semana ${padNum}`;
+                return (
+                  <option key={num} value={semVal}>
+                    Semana {padNum}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+
           {/* Bimestre */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -206,27 +241,6 @@ export const TecnicoFormSection: React.FC<TecnicoFormSectionProps> = ({
               <option value="2º">2º Bimestre</option>
               <option value="3º">3º Bimestre</option>
               <option value="4º">4º Bimestre</option>
-            </select>
-          </div>
-
-          {/* Identificação da Semana */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Identificação da Semana <span className="text-red-500">*</span>
-            </label>
-            <select
-              value={context.semana}
-              onChange={(e) => handleChange("semana", e.target.value)}
-              className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-slate-800"
-            >
-              {Array.from({ length: 40 }, (_, i) => {
-                const num = String(i + 1).padStart(2, "0");
-                return (
-                  <option key={num} value={`Semana ${num}`}>
-                    Semana {num}
-                  </option>
-                );
-              })}
             </select>
           </div>
 
@@ -273,6 +287,32 @@ export const TecnicoFormSection: React.FC<TecnicoFormSectionProps> = ({
           </div>
         </div>
 
+        {/* BANNER DE CARREGAMENTO AUTOMÁTICO DO CURRÍCULO (JSON) */}
+        {weekDetails ? (
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 p-4 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <div className="flex items-center space-x-2 text-blue-900 font-semibold text-sm">
+                <span>⚡ Conteúdo da Matriz Curricular Encontrado!</span>
+              </div>
+              <p className="text-xs text-blue-700 mt-0.5">
+                {weekDetails.lessons.length} aulas cadastradas no JSON para {context.disciplina} ({context.semana}).
+                Bimestre {weekDetails.bimestreFormatted} • Prática: {weekDetails.usoLaboratorio ? "Sim" : "Não"}.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleLoadCurriculumData(weekDetails)}
+              className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs shadow-sm transition flex items-center justify-center space-x-1 whitespace-nowrap"
+            >
+              <span>⚡ Preencher Plano Automaticamente</span>
+            </button>
+          </div>
+        ) : context.turma === "3º Técnico" ? (
+          <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl text-xs text-amber-900 flex items-center justify-between">
+            <span>ℹ️ O currículo do 3º Técnico ainda não possui o arquivo JSON de matriz carregado. Você pode digitar o escopo manualmente.</span>
+          </div>
+        ) : null}
+
         {/* Uso de Laboratório Técnico */}
         <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center justify-between">
           <div>
@@ -297,38 +337,40 @@ export const TecnicoFormSection: React.FC<TecnicoFormSectionProps> = ({
         </div>
       </div>
 
-      {/* BLOCO 2: ESCOPO DA SEMANA & TSV EXCEL */}
+      {/* BLOCO 2: ESCOPO DA SEMANA & TEXTAREA */}
       <div className="space-y-4 pt-4 border-t border-slate-100">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-slate-700 border-l-4 border-blue-600 pl-3">
-            2. Escopo da Semana (Texto Livre ou Planilha Excel / TSV)
+            2. Escopo da Semana (Conteúdo Integrado ou Texto Livre)
           </h3>
-          <span className="text-xs font-mono bg-blue-50 text-blue-700 px-2.5 py-1 rounded-md">
-            Parsing TSV Inteligente
-          </span>
+          {autoLoadedInfo && (
+            <span className="text-xs font-medium bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-md">
+              ✓ Dados do JSON Carregados
+            </span>
+          )}
         </div>
 
         <p className="text-xs text-slate-500">
-          Dica: Você pode copiar e colar linhas diretamente do Excel ou Google Sheets. O sistema identifica autonomamente as Aulas, Objetivos e Competências!
+          O campo abaixo é alimentado automaticamente ao clicar em &quot;Preencher Plano Automaticamente&quot;, ou pode ser editado livremente por você.
         </p>
 
         <textarea
-          rows={7}
-          placeholder="Cole aqui o conteúdo bruto ou linhas da planilha do curso... Exemplo:&#10;Aula 1&#10;Codificar estruturas condicionais e algoritmos em JS&#10;Empatia e Resolução de Problemas&#10;Aula 2&#10;Desenvolvimento de formulários interativos em laboratório"
+          rows={9}
+          placeholder="Selecione a Semana e clique em 'Preencher Plano Automaticamente' ou cole o conteúdo do curso..."
           value={content}
           onChange={(e) => setContent(e.target.value)}
           className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm text-slate-800 leading-relaxed"
         />
 
-        {/* Informações extraídas pelo parser em tempo real */}
+        {/* Extração Automática Detectada pelo Parser */}
         {parsedPreview && (
           <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-xs text-emerald-900 space-y-1.5">
             <div className="font-semibold flex items-center space-x-2 text-emerald-800">
-              <span>⚡ Extração Automática Detectada:</span>
+              <span>⚡ Análise em Tempo Real do Conteúdo:</span>
             </div>
             <div className="flex flex-wrap gap-2 pt-1">
               <span className="bg-emerald-100 px-2 py-0.5 rounded font-medium">
-                {parsedPreview.aulas.length} Aulas Encontradas
+                {parsedPreview.aulas.length} Aulas Identificadas
               </span>
               {parsedPreview.competencia && (
                 <span className="bg-emerald-100 px-2 py-0.5 rounded font-medium">

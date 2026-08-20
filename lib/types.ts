@@ -62,6 +62,26 @@ export interface TecnicoContext {
   usoLaboratorio: boolean;
 }
 
+export interface CurriculumLesson {
+  aula_complementar: string | null;
+  bimestre: number;
+  ch_tp: string;
+  componente: string;
+  competencia_tecnica: string;
+  competencias_socioemocionais: string;
+  codigo_componente: string;
+  aulas_semanais: number;
+  unidade_curricular: string;
+  codigo_unidade: string;
+  semana: number;
+  tema_semana: string;
+  titulo_aula: string;
+  habilidades_tecnicas: string;
+  habilidades_socioemocionais: string;
+  objetivo_aula: string;
+  objeto_conhecimento_macro: string;
+}
+
 export const GENERATE_TYPES: Record<GenerateType, string> = {
   planejamento: "Planejamento Semanal",
   ocorrencia: "Ocorrência Formal",
