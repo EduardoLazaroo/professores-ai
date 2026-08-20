@@ -147,39 +147,44 @@ export async function generateTecnicoDocx(
 
   // --- TABELA 2: MATRIZ DE PLANO DE AULA SEMANAL ---
   const rows: TableRow[] = [];
+  const bimestreLabel = (context.bimestre || "1º").toUpperCase();
+  const labText = context.usoLaboratorio
+    ? "SIM (Laboratório Técnico / Sala de Leitura)"
+    : "NÃO (Sala de aula comum)";
 
   // Linha 1: Título do Plano e Semana/Período
   rows.push(
     new TableRow({
       children: [
         new TableCell({
-          width: { size: 60, type: WidthType.PERCENTAGE },
-          shading: { fill: "F0F4F8", type: ShadingType.CLEAR },
+          width: { size: 55, type: WidthType.PERCENTAGE },
+          shading: { fill: "E0F2FE", type: ShadingType.CLEAR },
           children: [
             new Paragraph({
               children: [
                 new TextRun({
-                  text: "PLANO DE AULA SEMANAL — 2º BIM/2026",
+                  text: `PLANO DE AULA SEMANAL — ${bimestreLabel} BIM/2026`,
                   bold: true,
                   size: 20,
                   font: "Arial",
-                  color: "1E3A8A",
+                  color: "0369A1",
                 }),
               ],
             }),
           ],
         }),
         new TableCell({
-          width: { size: 40, type: WidthType.PERCENTAGE },
-          shading: { fill: "F0F4F8", type: ShadingType.CLEAR },
+          width: { size: 45, type: WidthType.PERCENTAGE },
+          shading: { fill: "E0F2FE", type: ShadingType.CLEAR },
           children: [
             new Paragraph({
               children: [
                 new TextRun({
-                  text: `SEMANA: ${context.semana || "-"} | PERÍODO: ${context.dataInicio || "__/__"} a ${context.dataFim || "__/__"}`,
+                  text: `SEMANA ESCOLAR: ${context.semana || "-"} | PERÍODO: ${context.dataInicio || "__/__"} a ${context.dataFim || "__/__"}`,
                   bold: true,
                   size: 18,
                   font: "Arial",
+                  color: "0F172A",
                 }),
               ],
             }),
@@ -205,7 +210,7 @@ export async function generateTecnicoDocx(
                   font: "Arial",
                 }),
                 new TextRun({
-                  text: context.nomeProf || "",
+                  text: context.nomeProf || "-",
                   size: 18,
                   font: "Arial",
                 }),
@@ -218,10 +223,6 @@ export async function generateTecnicoDocx(
   );
 
   // Linha 3: Disciplina e Ano/Série + Aulas/Lab
-  const labText = context.usoLaboratorio
-    ? "SIM (Laboratório Técnico / Sala de Leitura)"
-    : "NÃO (Sala de aula)";
-
   rows.push(
     new TableRow({
       children: [
@@ -231,13 +232,13 @@ export async function generateTecnicoDocx(
             new Paragraph({
               children: [
                 new TextRun({
-                  text: "DISCIPLINA: ",
+                  text: "DISCIPLINA / COMPONENTE: ",
                   bold: true,
                   size: 18,
                   font: "Arial",
                 }),
                 new TextRun({
-                  text: context.disciplina || "",
+                  text: context.disciplina || "-",
                   size: 18,
                   font: "Arial",
                 }),
@@ -257,7 +258,7 @@ export async function generateTecnicoDocx(
                   font: "Arial",
                 }),
                 new TextRun({
-                  text: `${context.turma || ""} | ${context.qtdAulas || 3} aulas | Lab: ${labText}`,
+                  text: `${context.turma || "-"} (${context.qtdAulas || 4} aulas/semana) | LAB: ${labText}`,
                   size: 18,
                   font: "Arial",
                 }),
@@ -293,7 +294,7 @@ export async function generateTecnicoDocx(
         children: [
           new TableCell({
             columnSpan: 2,
-            shading: { fill: "F1F5F9", type: ShadingType.CLEAR },
+            shading: { fill: "E2E8F0", type: ShadingType.CLEAR },
             children: [
               new Paragraph({
                 children: [
@@ -318,7 +319,7 @@ export async function generateTecnicoDocx(
     lines.forEach((line) => {
       paragraphs.push(
         new Paragraph({
-          spacing: { after: 80 },
+          spacing: { after: 60 },
           children: [
             new TextRun({
               text: line,

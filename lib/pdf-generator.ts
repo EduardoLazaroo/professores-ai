@@ -192,12 +192,12 @@ function createTecnicoHtmlContent(context: TecnicoContext, conteudo: string): st
 
       return `
       <tr>
-        <td colspan="2" style="background: #f1f5f9; padding: 6px 10px; border: 1px solid #334155; font-weight: bold; font-size: 11px; color: #0f172a; text-transform: uppercase;">
+        <td colspan="2" style="background: #e2e8f0; padding: 7px 10px; border: 1px solid #475569; font-weight: bold; font-size: 11px; color: #0f172a; text-transform: uppercase;">
           ${title}
         </td>
       </tr>
       <tr>
-        <td colspan="2" style="padding: 8px 10px; border: 1px solid #334155; font-size: 11px; color: #1e293b; line-height: 1.5; white-space: pre-wrap; margin: 0;">${bodyText || "-"}</td>
+        <td colspan="2" style="padding: 9px 12px; border: 1px solid #475569; font-size: 11px; color: #1e293b; line-height: 1.6; white-space: pre-wrap; margin: 0; background: #ffffff;">${bodyText || "-"}</td>
       </tr>
     `;
     })
@@ -205,7 +205,9 @@ function createTecnicoHtmlContent(context: TecnicoContext, conteudo: string): st
 
   const labText = context.usoLaboratorio
     ? "SIM (Laboratório Técnico / Sala de Leitura)"
-    : "NÃO (Sala Comum)";
+    : "NÃO (Sala de Aula Comum)";
+
+  const bimestreLabel = (context.bimestre || "1º").toUpperCase();
 
   return `
     <!DOCTYPE html>
@@ -220,11 +222,11 @@ function createTecnicoHtmlContent(context: TecnicoContext, conteudo: string): st
         <!-- 1. CABEÇALHO INSTITUCIONAL GOVERNAMENTAL -->
         <table style="width: 100%; border-collapse: collapse; border: 1px solid #334155; margin-bottom: 12px;">
           <tr>
-            <td style="text-align: center; padding: 10px; background: #fafafa;">
-              <div style="font-size: 14px; font-weight: bold; color: #000; text-transform: uppercase;">GOVERNO DO ESTADO DE SÃO PAULO</div>
-              <div style="font-size: 13px; font-weight: bold; color: #000; text-transform: uppercase;">SECRETARIA DE ESTADO DA EDUCAÇÃO</div>
-              <div style="font-size: 12px; color: #333;">UNIDADE REGIONAL DE ENSINO DE MARÍLIA</div>
-              <div style="font-size: 15px; font-weight: bold; color: #1e3a8a; margin-top: 2px;">EE "Monsenhor Bicudo"</div>
+            <td style="text-align: center; padding: 12px; background: #fafafa;">
+              <div style="font-size: 14px; font-weight: bold; color: #000; text-transform: uppercase; letter-spacing: 0.5px;">GOVERNO DO ESTADO DE SÃO PAULO</div>
+              <div style="font-size: 13px; font-weight: bold; color: #000; text-transform: uppercase; letter-spacing: 0.5px;">SECRETARIA DE ESTADO DA EDUCAÇÃO</div>
+              <div style="font-size: 12px; color: #333; margin-top: 1px;">UNIDADE REGIONAL DE ENSINO DE MARÍLIA</div>
+              <div style="font-size: 16px; font-weight: bold; color: #1e3a8a; margin-top: 3px;">EE "Monsenhor Bicudo"</div>
               <div style="font-size: 10px; color: #555; margin-top: 2px;">Av. Rio Branco, 803 - Fone (14) 3433-5163 - 17502-000 - Marília - SP</div>
             </td>
           </tr>
@@ -234,26 +236,26 @@ function createTecnicoHtmlContent(context: TecnicoContext, conteudo: string): st
         <table style="width: 100%; border-collapse: collapse; border: 1px solid #334155; font-size: 11px;">
           <!-- Linha Título do Plano -->
           <tr>
-            <td style="width: 60%; background: #f0f4f8; padding: 6px 10px; border: 1px solid #334155; font-weight: bold; font-size: 12px; color: #1e3a8a;">
-              PLANO DE AULA SEMANAL — 2º BIM/2026
+            <td style="width: 55%; background: #e0f2fe; padding: 8px 12px; border: 1px solid #334155; font-weight: bold; font-size: 12px; color: #0369a1;">
+              PLANO DE AULA SEMANAL — ${bimestreLabel} BIM/2026
             </td>
-            <td style="width: 40%; background: #f0f4f8; padding: 6px 10px; border: 1px solid #334155; font-weight: bold; font-size: 11px; color: #0f172a;">
-              Nº/ SEMANA: ${context.semana || "-"} | DE: ${context.dataInicio || "__/__"} a ${context.dataFim || "__/__"}
+            <td style="width: 45%; background: #e0f2fe; padding: 8px 12px; border: 1px solid #334155; font-weight: bold; font-size: 11px; color: #0f172a;">
+              SEMANA ESCOLAR: ${context.semana || "-"} | PERÍODO: ${context.dataInicio || "__/__"} a ${context.dataFim || "__/__"}
             </td>
           </tr>
           <!-- Linha Professor -->
           <tr>
-            <td colspan="2" style="padding: 6px 10px; border: 1px solid #334155;">
+            <td colspan="2" style="padding: 7px 12px; border: 1px solid #334155; background: #ffffff;">
               <strong>Nome do(a) professor(a):</strong> ${context.nomeProf || "-"}
             </td>
           </tr>
           <!-- Linha Disciplina & Turma -->
           <tr>
-            <td style="padding: 6px 10px; border: 1px solid #334155;">
-              <strong>DISCIPLINA:</strong> ${context.disciplina || "-"}
+            <td style="padding: 7px 12px; border: 1px solid #334155; background: #ffffff;">
+              <strong>DISCIPLINA / COMPONENTE:</strong> ${context.disciplina || "-"}
             </td>
-            <td style="padding: 6px 10px; border: 1px solid #334155;">
-              <strong>ANO/SÉRIE:</strong> ${context.turma || "-"} (${context.qtdAulas || 3} aulas) | <strong>LAB:</strong> ${labText}
+            <td style="padding: 7px 12px; border: 1px solid #334155; background: #ffffff;">
+              <strong>ANO/SÉRIE:</strong> ${context.turma || "-"} (${context.qtdAulas || 4} aulas/semana) | <strong>LAB:</strong> ${labText}
             </td>
           </tr>
           
