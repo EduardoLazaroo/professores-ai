@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useEffect, useCallback } from "react";
 import { TecnicoContext } from "@/lib/types";
-import { parseScopeText, ParsedScopeResult } from "@/lib/scopeParser";
 import {
-  getDisciplinasByTurma,
-  getSemanasDisponiveis,
+  getDisciplinasByTurmaEBimestre,
+  getSemanasByTurmaBimestreDisciplina,
   getWeekDetails,
   getCurriculumData,
   CurriculumWeekDetails,
@@ -28,59 +27,84 @@ export const TecnicoFormSection: React.FC<TecnicoFormSectionProps> = ({
   onSubmit,
   isLoading,
 }) => {
-  const [customDisciplina, setCustomDisciplina] = useState("");
-  const [parsedPreview, setParsedPreview] = useState<ParsedScopeResult | null>(null);
-  const [autoLoadedInfo, setAutoLoadedInfo] = useState<string | null>(null);
+  // Lista de disciplinas dinâmicas filtradas por Turma e Bimestre
+  const disciplinasDisponiveis = getDisciplinasByTurmaEBimestre(
+    context.turma,
+    context.bimestre
+  );
 
-  // Lista de disciplinas dinâmicas conforme a turma
-  const disciplinasDisponiveis = getDisciplinasByTurma(context.turma);
+  // Lista de semanas disponíveis para a combinação Turma + Bimestre + Disciplina
+  const semanasDisponiveis = getSemanasByTurmaBimestreDisciplina(
+    context.turma,
+    context.bimestre,
+    context.disciplina
+  );
 
-  // Semanas disponíveis conforme a disciplina selecionada
-  const semanasDisponiveis = getSemanasDisponiveis(context.turma, context.disciplina);
-
-  // Detalhes da semana selecionada no JSON
+  // Buscar detalhes das aulas da semana selecionada no banco de dados JSON
   const weekDetails: CurriculumWeekDetails | null = getWeekDetails(
     context.turma,
     context.disciplina,
     context.semana
   );
 
-  // Função para aplicar os dados automáticos do JSON no formulário
-  const handleLoadCurriculumData = useCallback(
-    (details: CurriculumWeekDetails) => {
-      setContext((prev) => ({
-        ...prev,
-        bimestre: details.bimestreFormatted,
-        qtdAulas: details.qtdAulas,
-        usoLaboratorio: details.usoLaboratorio,
-      }));
+  // Efeito para sincronizar os dados da semana no contexto e no conteúdo automaticamente
+  const updateFormFromCurriculum = useCallback(() => {
+    if (weekDetails) {
+      setContext((prev) => {
+        // Apenas atualiza se os valores diferirem para evitar rerenders infinitos
+        if (
+          prev.qtdAulas === weekDetails.qtdAulas &&
+          prev.usoLaboratorio === weekDetails.usoLaboratorio &&
+          prev.bimestre === weekDetails.bimestreFormatted
+        ) {
+          return prev;
+        }
+        return {
+          ...prev,
+          bimestre: weekDetails.bimestreFormatted,
+          qtdAulas: weekDetails.qtdAulas,
+          usoLaboratorio: weekDetails.usoLaboratorio,
+        };
+      });
 
-      setContent(details.formattedScope);
+      if (content !== weekDetails.formattedScope) {
+        setContent(weekDetails.formattedScope);
+      }
+    }
+  }, [weekDetails, content, setContent, setContext]);
 
-      setAutoLoadedInfo(
-        `Carregado automaticamente: ${details.lessons.length} aulas da ${context.semana} (${context.disciplina})`
-      );
-    },
-    [context.semana, context.disciplina, setContext, setContent]
-  );
-
-  // Ao trocar de turma, reseta disciplina para a primeira da nova lista se não existir nela
+  // Executa o preenchimento automático sempre que a semana selecionada mudar
   useEffect(() => {
-    const disponiveis = getDisciplinasByTurma(context.turma);
+    updateFormFromCurriculum();
+  }, [updateFormFromCurriculum]);
+
+  // Validação do seletor de disciplinas ao mudar de Turma ou Bimestre
+  useEffect(() => {
+    const disponiveis = getDisciplinasByTurmaEBimestre(
+      context.turma,
+      context.bimestre
+    );
     if (!disponiveis.includes(context.disciplina) && disponiveis.length > 0) {
       setContext((prev) => ({ ...prev, disciplina: disponiveis[0] }));
     }
-  }, [context.turma, context.disciplina, setContext]);
+  }, [context.turma, context.bimestre, context.disciplina, setContext]);
 
-  // Atualizar preview do parser de texto sempre que o escopo mudar
+  // Validação do seletor de semanas ao mudar a disciplina
   useEffect(() => {
-    if (content.trim().length > 10) {
-      const parsed = parseScopeText(content);
-      setParsedPreview(parsed);
-    } else {
-      setParsedPreview(null);
+    const semanas = getSemanasByTurmaBimestreDisciplina(
+      context.turma,
+      context.bimestre,
+      context.disciplina
+    );
+    if (semanas.length > 0) {
+      const padFirst = `Semana ${String(semanas[0]).padStart(2, "0")}`;
+      const semanaMatch = context.semana.match(/\d+/);
+      const semanaNum = semanaMatch ? parseInt(semanaMatch[0], 10) : null;
+      if (semanaNum === null || !semanas.includes(semanaNum)) {
+        setContext((prev) => ({ ...prev, semana: padFirst }));
+      }
     }
-  }, [content]);
+  }, [context.turma, context.bimestre, context.disciplina, context.semana, setContext]);
 
   const handleChange = (
     field: keyof TecnicoContext,
@@ -89,18 +113,9 @@ export const TecnicoFormSection: React.FC<TecnicoFormSectionProps> = ({
     setContext((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleDisciplinaSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const val = e.target.value;
-    if (val === "Outra Disciplina") {
-      handleChange("disciplina", customDisciplina || "Outra Disciplina");
-    } else {
-      handleChange("disciplina", val);
-    }
-  };
-
   return (
     <div className="w-full max-w-4xl mx-auto space-y-8 bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-slate-100">
-      {/* CABEÇALHO */}
+      {/* CABEÇALHO DA SEÇÃO */}
       <div className="border-b border-slate-100 pb-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center space-x-3">
@@ -112,40 +127,26 @@ export const TecnicoFormSection: React.FC<TecnicoFormSectionProps> = ({
                 Educação Profissional Técnico de Desenvolvimento de Sistemas
               </h2>
               <p className="text-sm text-slate-500">
-                Plano de Aula Semanal integrado à Matriz Curricular Oficial (JSON / Excel).
+                Filtre os dados oficiais do currículo para gerar o Plano de Aula Semanal.
               </p>
             </div>
           </div>
 
           <div className="flex items-center space-x-2">
             <span className="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-              ✓ Matriz {context.turma} Carregada ({getCurriculumData(context.turma).length} Aulas)
+              ✓ Matriz {context.turma} ({getCurriculumData(context.turma).length} Aulas)
             </span>
           </div>
         </div>
       </div>
 
-      {/* BLOCO 1: INFORMAÇÕES GERAIS */}
+      {/* BLOCO 1: FILTROS DA MATRIZ CURRICULAR (EXCEL / JSON) */}
       <div className="space-y-6">
         <h3 className="text-lg font-semibold text-slate-700 border-l-4 border-blue-600 pl-3">
-          1. Informações Gerais da Turma & Período
+          1. Seleção e Filtros da Matriz Curricular
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {/* Nome do Professor */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Nome do Professor(a) <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              placeholder="Ex: Prof. Eduardo Lazaroo"
-              value={context.nomeProf}
-              onChange={(e) => handleChange("nomeProf", e.target.value)}
-              className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-slate-800"
-            />
-          </div>
-
           {/* Turma / Série */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -169,19 +170,40 @@ export const TecnicoFormSection: React.FC<TecnicoFormSectionProps> = ({
             </div>
           </div>
 
-          {/* Componente / Disciplina */}
+          {/* Bimestre */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Bimestre <span className="text-red-500">*</span>
+            </label>
+            <div className="grid grid-cols-4 gap-2">
+              {(["1º", "2º", "3º", "4º"] as const).map((b) => (
+                <button
+                  key={b}
+                  type="button"
+                  onClick={() =>
+                    handleChange("bimestre", b as TecnicoContext["bimestre"])
+                  }
+                  className={`py-2.5 px-2 rounded-lg font-medium text-sm border transition flex items-center justify-center ${
+                    context.bimestre === b
+                      ? "bg-blue-600 text-white border-blue-600 shadow-sm font-bold"
+                      : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                  }`}
+                >
+                  <span>{b} Bim</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Componente Curricular / Disciplina */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
               Componente Curricular / Disciplina <span className="text-red-500">*</span>
             </label>
             <select
-              value={
-                disciplinasDisponiveis.includes(context.disciplina)
-                  ? context.disciplina
-                  : "Outra Disciplina"
-              }
-              onChange={handleDisciplinaSelect}
-              className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-slate-800"
+              value={context.disciplina}
+              onChange={(e) => handleChange("disciplina", e.target.value)}
+              className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-slate-800 bg-white"
             >
               {disciplinasDisponiveis.map((d) => (
                 <option key={d} value={d}>
@@ -189,18 +211,6 @@ export const TecnicoFormSection: React.FC<TecnicoFormSectionProps> = ({
                 </option>
               ))}
             </select>
-            {!disciplinasDisponiveis.includes(context.disciplina) && (
-              <input
-                type="text"
-                placeholder="Digite o nome da disciplina customizada..."
-                value={customDisciplina || context.disciplina}
-                onChange={(e) => {
-                  setCustomDisciplina(e.target.value);
-                  handleChange("disciplina", e.target.value);
-                }}
-                className="mt-2 w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 text-sm text-slate-800"
-              />
-            )}
           </div>
 
           {/* Identificação da Semana */}
@@ -211,7 +221,7 @@ export const TecnicoFormSection: React.FC<TecnicoFormSectionProps> = ({
             <select
               value={context.semana}
               onChange={(e) => handleChange("semana", e.target.value)}
-              className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-slate-800"
+              className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-slate-800 bg-white"
             >
               {semanasDisponiveis.map((num) => {
                 const padNum = String(num).padStart(2, "0");
@@ -224,42 +234,107 @@ export const TecnicoFormSection: React.FC<TecnicoFormSectionProps> = ({
               })}
             </select>
           </div>
+        </div>
+      </div>
 
-          {/* Bimestre */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Bimestre <span className="text-red-500">*</span>
-            </label>
-            <select
-              value={context.bimestre}
-              onChange={(e) =>
-                handleChange("bimestre", e.target.value as TecnicoContext["bimestre"])
-              }
-              className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-slate-800"
-            >
-              <option value="1º">1º Bimestre</option>
-              <option value="2º">2º Bimestre</option>
-              <option value="3º">3º Bimestre</option>
-              <option value="4º">4º Bimestre</option>
-            </select>
+      {/* CARD DE VISUALIZAÇÃO DOS DADOS DA SEMANA CARREGADOS DA MATRIZ */}
+      {weekDetails && weekDetails.lessons.length > 0 && (
+        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 md:p-6 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
+            <div>
+              <span className="text-xs uppercase tracking-wider font-bold text-blue-600">
+                Matriz Curricular Carregada ({context.turma} • {context.bimestre} Bimestre)
+              </span>
+              <h4 className="text-lg font-bold text-slate-800">
+                📌 {weekDetails.lessons[0].tema_semana}
+              </h4>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-xs font-semibold px-3 py-1 rounded-md bg-blue-100 text-blue-800">
+                {weekDetails.qtdAulas} Aulas na Semana
+              </span>
+              <span
+                className={`text-xs font-semibold px-3 py-1 rounded-md ${
+                  weekDetails.usoLaboratorio
+                    ? "bg-emerald-100 text-emerald-800"
+                    : "bg-slate-200 text-slate-700"
+                }`}
+              >
+                {weekDetails.usoLaboratorio ? "Prática (Laboratório)" : "Teórica"}
+              </span>
+            </div>
           </div>
 
-          {/* Quantidade de Aulas */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-700">
+            <div>
+              <span className="font-bold block text-slate-800">Unidade Curricular:</span>
+              <span>
+                {weekDetails.lessons[0].unidade_curricular} ({weekDetails.lessons[0].codigo_unidade})
+              </span>
+            </div>
+            <div>
+              <span className="font-bold block text-slate-800">Competência Técnica:</span>
+              <span className="line-clamp-2">
+                {weekDetails.lessons[0].competencia_tecnica}
+              </span>
+            </div>
+          </div>
+
+          {/* LISTA DAS AULAS */}
+          <div className="space-y-2 pt-2">
+            <span className="font-bold text-xs text-slate-800 block">
+              Aulas da Semana:
+            </span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {weekDetails.lessons.map((aula, i) => (
+                <div
+                  key={i}
+                  className="bg-white p-3 rounded-xl border border-slate-200 text-xs space-y-1 shadow-sm"
+                >
+                  <div className="flex items-center justify-between font-semibold text-slate-800">
+                    <span className="truncate">{aula.titulo_aula}</span>
+                    <span
+                      className={`px-2 py-0.5 rounded text-[10px] uppercase tracking-wide font-bold ${
+                        aula.ch_tp === "P"
+                          ? "bg-emerald-100 text-emerald-800"
+                          : "bg-slate-100 text-slate-700"
+                      }`}
+                    >
+                      {aula.ch_tp === "P" ? "Prática" : "Teórica"}
+                    </span>
+                  </div>
+                  <p className="text-slate-500 text-[11px] line-clamp-2">
+                    {aula.objetivo_aula}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* BLOCO 2: INFORMAÇÕES DO PROFESSOR & PERÍODO */}
+      <div className="space-y-6 pt-4 border-t border-slate-100">
+        <h3 className="text-lg font-semibold text-slate-700 border-l-4 border-blue-600 pl-3">
+          2. Dados do Professor & Período Letivo
+        </h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {/* Nome do Professor */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
-              Quantidade de Aulas na Semana <span className="text-red-500">*</span>
+              Nome do Professor(a) <span className="text-red-500">*</span>
             </label>
             <input
-              type="number"
-              min={1}
-              max={10}
-              value={context.qtdAulas}
-              onChange={(e) => handleChange("qtdAulas", parseInt(e.target.value, 10) || 1)}
+              type="text"
+              placeholder="Ex: Prof. Eduardo Lazaroo"
+              value={context.nomeProf}
+              onChange={(e) => handleChange("nomeProf", e.target.value)}
               className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-slate-800"
             />
           </div>
 
-          {/* Período: Data Início e Fim */}
+          {/* Período: Data Início */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
               Data de Início da Semana
@@ -273,6 +348,7 @@ export const TecnicoFormSection: React.FC<TecnicoFormSectionProps> = ({
             />
           </div>
 
+          {/* Período: Data Fim */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
               Data de Fim da Semana
@@ -287,32 +363,6 @@ export const TecnicoFormSection: React.FC<TecnicoFormSectionProps> = ({
           </div>
         </div>
 
-        {/* BANNER DE CARREGAMENTO AUTOMÁTICO DO CURRÍCULO (JSON) */}
-        {weekDetails ? (
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 p-4 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <div className="flex items-center space-x-2 text-blue-900 font-semibold text-sm">
-                <span>⚡ Conteúdo da Matriz Curricular Encontrado!</span>
-              </div>
-              <p className="text-xs text-blue-700 mt-0.5">
-                {weekDetails.lessons.length} aulas cadastradas no JSON para {context.disciplina} ({context.semana}).
-                Bimestre {weekDetails.bimestreFormatted} • Prática: {weekDetails.usoLaboratorio ? "Sim" : "Não"}.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => handleLoadCurriculumData(weekDetails)}
-              className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs shadow-sm transition flex items-center justify-center space-x-1 whitespace-nowrap"
-            >
-              <span>⚡ Preencher Plano Automaticamente</span>
-            </button>
-          </div>
-        ) : context.turma === "3º Técnico" ? (
-          <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl text-xs text-amber-900 flex items-center justify-between">
-            <span>ℹ️ O currículo do 3º Técnico ainda não possui o arquivo JSON de matriz carregado. Você pode digitar o escopo manualmente.</span>
-          </div>
-        ) : null}
-
         {/* Uso de Laboratório Técnico */}
         <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center justify-between">
           <div>
@@ -320,7 +370,7 @@ export const TecnicoFormSection: React.FC<TecnicoFormSectionProps> = ({
               🖥️ Uso de Laboratório Técnico de TI
             </h4>
             <p className="text-xs text-slate-500">
-              As atividades desta semana necessitam de computadores, IDEs ou softwares práticos?
+              Detectado automaticamente da matriz da semana ({context.usoLaboratorio ? "Aulas práticas inclusas" : "Aulas teóricas"}).
             </p>
           </div>
           <button
@@ -337,64 +387,14 @@ export const TecnicoFormSection: React.FC<TecnicoFormSectionProps> = ({
         </div>
       </div>
 
-      {/* BLOCO 2: ESCOPO DA SEMANA & TEXTAREA */}
-      <div className="space-y-4 pt-4 border-t border-slate-100">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-slate-700 border-l-4 border-blue-600 pl-3">
-            2. Escopo da Semana (Conteúdo Integrado ou Texto Livre)
-          </h3>
-          {autoLoadedInfo && (
-            <span className="text-xs font-medium bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-md">
-              ✓ Dados do JSON Carregados
-            </span>
-          )}
-        </div>
-
-        <p className="text-xs text-slate-500">
-          O campo abaixo é alimentado automaticamente ao clicar em &quot;Preencher Plano Automaticamente&quot;, ou pode ser editado livremente por você.
-        </p>
-
-        <textarea
-          rows={9}
-          placeholder="Selecione a Semana e clique em 'Preencher Plano Automaticamente' ou cole o conteúdo do curso..."
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm text-slate-800 leading-relaxed"
-        />
-
-        {/* Extração Automática Detectada pelo Parser */}
-        {parsedPreview && (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-xs text-emerald-900 space-y-1.5">
-            <div className="font-semibold flex items-center space-x-2 text-emerald-800">
-              <span>⚡ Análise em Tempo Real do Conteúdo:</span>
-            </div>
-            <div className="flex flex-wrap gap-2 pt-1">
-              <span className="bg-emerald-100 px-2 py-0.5 rounded font-medium">
-                {parsedPreview.aulas.length} Aulas Identificadas
-              </span>
-              {parsedPreview.competencia && (
-                <span className="bg-emerald-100 px-2 py-0.5 rounded font-medium">
-                  Competência Técnica Mapeada
-                </span>
-              )}
-              {parsedPreview.competenciasSocioemocionais && (
-                <span className="bg-emerald-100 px-2 py-0.5 rounded font-medium">
-                  Soft Skills Identificadas
-                </span>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* BOTÃO DE AÇÃO */}
-      <div className="pt-4 flex justify-end">
+      {/* BOTÃO DE AÇÃO DE GERAÇÃO */}
+      <div className="pt-4 flex justify-end border-t border-slate-100">
         <button
           type="button"
           onClick={onSubmit}
-          disabled={isLoading || !content.trim()}
+          disabled={isLoading || !context.nomeProf.trim() || !weekDetails}
           className={`w-full md:w-auto px-8 py-3.5 rounded-xl font-bold text-white shadow-lg transition flex items-center justify-center space-x-2 ${
-            isLoading || !content.trim()
+            isLoading || !context.nomeProf.trim() || !weekDetails
               ? "bg-slate-300 cursor-not-allowed"
               : "bg-blue-600 hover:bg-blue-700 active:scale-[0.99] shadow-blue-500/25"
           }`}
