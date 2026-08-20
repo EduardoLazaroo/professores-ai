@@ -67,12 +67,12 @@ export default function Home() {
   const [tecnicoContext, setTecnicoContext] = useState<TecnicoContext>({
     nomeProf: "",
     turma: "2º Técnico",
-    disciplina: "Lógica de Programação",
-    bimestre: "1º",
-    semana: "Semana 01",
+    disciplina: "Lógica e Linguagem de Programação",
+    bimestre: "3º",
+    semana: "Semana 20",
     dataInicio: getDefaultDateOffset(3),
     dataFim: getDefaultDateOffset(7),
-    qtdAulas: 3,
+    qtdAulas: 4,
     usoLaboratorio: true,
   });
 

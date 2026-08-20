@@ -32,7 +32,6 @@ export function getDisciplinasByTurmaEBimestre(
   });
 
   if (setComp.size === 0) {
-    // Se não encontrou restrição por bimestre, retorna todas da turma
     return getDisciplinasByTurma(turma);
   }
 
@@ -49,6 +48,53 @@ export function getDisciplinasByTurma(turma: string): string[] {
   });
 
   return Array.from(setComp);
+}
+
+export function getMaxMaterialSemanas(turma: string, disciplina: string): number {
+  const dataset = getCurriculumData(turma);
+  let maxSemana = 0;
+  dataset.forEach((item) => {
+    if (item.componente === disciplina && item.semana > maxSemana) {
+      maxSemana = item.semana;
+    }
+  });
+  return maxSemana || 26;
+}
+
+export interface MaterialOption {
+  semanaNum: number;
+  shortLabel: string;
+  label: string;
+}
+
+export function getMaterialOptionsByBimestre(
+  turma: string,
+  bimestreStr: string,
+  disciplina: string
+): MaterialOption[] {
+  const dataset = getCurriculumData(turma);
+  const bimNum = parseBimestreNumber(bimestreStr);
+  const totalMaterial = getMaxMaterialSemanas(turma, disciplina);
+
+  const semanaMap = new Map<number, string>();
+  dataset.forEach((item) => {
+    if (item.bimestre === bimNum && item.componente === disciplina && item.semana) {
+      if (!semanaMap.has(item.semana)) {
+        semanaMap.set(item.semana, item.tema_semana || "");
+      }
+    }
+  });
+
+  const semanaNums = Array.from(semanaMap.keys()).sort((a, b) => a - b);
+  return semanaNums.map((s) => {
+    const padNum = String(s).padStart(2, "0");
+    const tema = semanaMap.get(s);
+    return {
+      semanaNum: s,
+      shortLabel: `MATERIAL ${padNum}/${totalMaterial}`,
+      label: `MATERIAL ${padNum}/${totalMaterial} — ${tema}`,
+    };
+  });
 }
 
 export function getSemanasByTurmaBimestreDisciplina(
@@ -71,7 +117,6 @@ export function getSemanasByTurmaBimestreDisciplina(
   });
 
   if (semanas.size === 0) {
-    // Se não houver filtro estrito por bimestre, busca semanas da disciplina
     return getSemanasDisponiveis(turma, disciplina);
   }
 
@@ -148,16 +193,24 @@ export interface CurriculumWeekDetails {
   lessons: CurriculumLesson[];
   formattedScope: string;
   isCustom: boolean;
+  semanaNum: number;
+  totalMaterial: number;
+  materialLabel: string;
 }
 
 export function getWeekDetails(
   turma: string,
   disciplina: string,
-  semanaStr: string
+  semanaStrOrNum: string | number
 ): CurriculumWeekDetails | null {
-  const semanaMatch = semanaStr.match(/\d+/);
-  if (!semanaMatch) return null;
-  const semanaNum = parseInt(semanaMatch[0], 10);
+  let semanaNum: number;
+  if (typeof semanaStrOrNum === "number") {
+    semanaNum = semanaStrOrNum;
+  } else {
+    const semanaMatch = semanaStrOrNum.match(/\d+/);
+    if (!semanaMatch) return null;
+    semanaNum = parseInt(semanaMatch[0], 10);
+  }
 
   const lessons = getLessonsByWeek(turma, disciplina, semanaNum);
   if (!lessons || lessons.length === 0) return null;
@@ -170,6 +223,10 @@ export function getWeekDetails(
     4: "4º",
   };
 
+  const totalMaterial = getMaxMaterialSemanas(turma, disciplina);
+  const padNum = String(semanaNum).padStart(2, "0");
+  const materialLabel = `MATERIAL ${padNum}/${totalMaterial}`;
+
   const temPratica = lessons.some((l) => l.ch_tp === "P");
   const formattedScope = formatScopeFromLessons(lessons);
 
@@ -180,5 +237,8 @@ export function getWeekDetails(
     lessons,
     formattedScope,
     isCustom: false,
+    semanaNum,
+    totalMaterial,
+    materialLabel,
   };
 }
