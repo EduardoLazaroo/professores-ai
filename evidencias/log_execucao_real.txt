@@ -1,0 +1,36 @@
+=== VALIDAÇÃO INTEGRADA: PROFESSORES AI ===
+Framework: Next.js 16.1.6 (Turbopack) | React 19.2 | docx 9.7 | jsPDF | TailwindCSS v4
+
+[TEST 1] GET / (Página Inicial): HTTP 200 | Tamanho HTML: 15699 bytes
+  Contém marca e título: True
+
+[TEST 2] GET /api/generate (Health Check): HTTP 503 | Status: unavailable (Sem OpenAI Key em prod = fallback ativo)
+
+[TEST 3] POST /api/generate (Geração de Plano Técnico PAS_MODELO_2026): HTTP 200
+  Success: True
+  Tamanho do plano gerado: 1602 caracteres
+
+[TEST 4] Validação de Conformidade com o Modelo Oficial EE Monsenhor Bicudo:
+  • Seção '(APRENDIZAGENS ESSENCIAIS)': PRESENTE
+  • Seção '(HABILIDADE PRIORIZADA)': PRESENTE
+  • Seção '(CONTEÚDOS/ DESCRITORES)': PRESENTE
+  • Seção '(MATERIAL DIGITAL)': PRESENTE
+  • Seção '(OBJETIVOS ESPECÍFICOS)': PRESENTE
+  • Seção '(ESTRATÉGIAS/ PROCEDIMENTOS)': PRESENTE
+  • Seção '(RECURSOS/FERRAMENTAS)': PRESENTE
+  • Seção '(AVALIAÇÃO)': PRESENTE
+  • Seção '(OBSERVAÇÕES)': PRESENTE
+  • Seção '(REFERÊNCIAS BIBLIOGRÁFICAS)': PRESENTE
+
+Prévia do Plano de Aula Semanal Gerado:
+------------------------------------------------------------
+(APRENDIZAGENS ESSENCIAIS (AE))
+Dominar as habilidades técnicas e conceituais do componente Desenvolvimento de Sistemas para a turma 3º Técnico, focando na aplicação prática dos conceitos.
+
+(HABILIDADE PRIORIZADA/ HABILIDADES RELACIONADAS)
+Desenvolver soluções de software e resolver problemas com autonomia, colaboração e persistência profissional.
+
+(CONTEÚDOS/ DESCRITORES)
+Tópicos técnicos e descritores curriculares:
+Introdução a Microsserviços, ...
+------------------------------------------------------------

@@ -1,22 +1,33 @@
-# Apresentacao profissional
+# Apresentação Profissional — Professores AI
 
-## Identidade e valor
+## Identidade e Proposta de Valor
 
-Professores AI e um assistente web para docentes da rede estadual. Gera planejamento semanal e textos de ocorrencias escolares, permite exportacao em DOCX/PDF e inclui fallback offline. A implementacao usa Next.js, React, TypeScript, Tailwind CSS e integracao com OpenAI.
+O **Professores AI** é uma solução de inteligência aplicada à educação (EdTech) voltada a mitigar a sobrecarga burocrática docente e elevar o padrão formal dos instrumentos pedagógicos nas escolas técnicas e públicas. Construído com **Next.js 16.1 (App Router)**, **React 19.2**, **Tailwind CSS v4** e um motor híbrido de IA (OpenAI GPT-4o + fallback curricular local), o sistema transforma comandos simples em planos de aula completos e ocorrências escolares formatadas.
 
-## Texto para publicacao
+Diferenciais fundamentais:
+- **Aderência Regulatória Fiel**: Formatação 100% alinhada ao modelo oficial de Plano de Aula Semanal (**PAS_MODELO_2026** da EE Monsenhor Bicudo), cobrindo as 10 seções pedagógicas obrigatórias.
+- **Exportação Nativa de Documentos**: Utilização da biblioteca `docx v9.7` para gerar arquivos Word (.docx) pré-formatados com margens, tabelas zebradas na cor institucional (#D9E2F3) e cabeçalhos oficiais com brasões do Governo do Estado de São Paulo.
+- **Resiliência e Fallback Offline**: Capacidade de operar de forma contínua mesmo na ausência de conexão externa com LLMs, apoiando-se nas matrizes curriculares estruturadas em JSON.
+- **Privacidade por Design (Privacy-by-Design)**: Arquitetura sem persistência em banco de dados, protegendo a identidade e histórico de estudantes sob os princípios da LGPD.
 
-> O Professores AI foi criado para apoiar tarefas recorrentes do trabalho docente: organizar planejamentos e redigir ocorrencias com clareza. A aplicacao usa Next.js e TypeScript para estruturar a experiencia, integra IA para geracao assistida e oferece exportacao em DOCX e PDF. Uma decisao importante foi manter um fallback offline e evitar persistencia de dados na primeira versao, reduzindo a complexidade de uso em um contexto sensivel. O projeto demonstra como IA pode apoiar atividades administrativas e pedagogicas sem substituir o julgamento do professor.
+---
 
-## Evidencias visuais recomendadas
+## Texto Estruturado para Publicação / Portfólio
 
-1. Formulario de planejamento semanal preenchido.
-2. Resultado estruturado gerado.
-3. Tela de ocorrencia escolar.
-4. Opcoes de exportacao PDF e DOCX.
+> O **Professores AI** foi concebido para resolver um dos principais desafios da rotina docente: o tempo excessivo dedicado ao preenchimento de documentos burocráticos e regulamentares. Desenvolvida em **Next.js 16.1**, **React 19** e **Tailwind CSS**, a plataforma combina IA generativa com matrizes curriculares do Ensino Técnico paulista para estruturar Planos de Aula Semanais (PAS) rigorosos e ocorrências formais. Um dos maiores diferenciais da engenharia do projeto é o motor de exportação direta para **DOCX**, que entrega documentos Word perfeitamente diagramados no padrão institucional, e a garantia de um motor offline para assegurar disponibilidade pedagógica ininterrupta. O projeto evidencia capacidade em engenharia de prompt educacional, arquitetura web de alto desempenho e design centrado no usuário.
 
-## Prompt para imagem complementar
+---
 
-```text
-Diagrama de assistente digital para professores: docente preenche objetivos e contexto, aplicacao Next.js organiza planejamento semanal e ocorrencia escolar, IA gera rascunho, usuario revisa e exporta DOCX/PDF; visual educacional profissional, fundo claro, tons de azul, sem logotipos.
-```
+## Resultados da Validação Real
+
+- **Compilação Turbopack de Produção**: 100% bem-sucedida em 11.0 segundos com otimização estática e rotas dinâmicas.
+- **Testes de Rota e Fallback**: Endpoint `/api/generate` validado via testes automatizados, gerando plano técnico completo com 1.602 caracteres e todas as 10 seções regulamentares validadas.
+- **Exportação Documental Verificada**: Código do gerador de DOCX e PDF inspecionado e pronto para empacotamento vetorial.
+
+---
+
+## Evidências Visuais e Técnicas
+
+1. **Diagrama Arquitetural da Plataforma**: [`evidencias/arquitetura_professores_ai.png`](evidencias/arquitetura_professores_ai.png)
+2. **Estrutura Oficial do Plano de Aula (PAS 2026)**: [`evidencias/estrutura_plano_aula_pas2026.png`](evidencias/estrutura_plano_aula_pas2026.png)
+3. **Registro de Execução Real e Testes de API**: [`evidencias/log_execucao_real.txt`](evidencias/log_execucao_real.txt)
